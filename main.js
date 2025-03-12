@@ -156,32 +156,28 @@ ipcMain.handle('get-all-sessions', async () => {
 // Add new IPC handler for AI messages
 ipcMain.handle('send-ai-message', async (event, { message, sessionId }) => {
     try {
+        console.log('Received message:', message);
         const messages = sessions.get(sessionId) || [];
+
         event.sender.send('ai-thinking', true);
+
         let contentAccumulator = '';
 
+        // 创建一个新的 Promise 来处理流式响应
         await new Promise((resolve, reject) => {
+            // 确保移除所有之前的监听器
             aiService.removeAllListeners();
 
-            const contentHandler = (data) => {
-                console.log('Stream data:', data);
-                if (data.type === 'think') {
-                    // Send thinking process
-                    event.sender.send('ai-stream', {
-                        type: 'think',
-                        content: data.content
-                    });
-                } else if (data.content) {
-                    // Send regular content
-                    contentAccumulator += data.content;
-                    event.sender.send('ai-stream', {
-                        type: 'content',
-                        content: data.content
-                    });
+            // 设置新的监听器
+            const contentHandler = ({ content }) => {
+                if (content) {
+                    contentAccumulator += content;
+                    event.sender.send('ai-stream', content);
                 }
             };
 
             const completeHandler = () => {
+                console.log('Stream completed, total content:', contentAccumulator);
                 resolve();
             };
 
@@ -190,10 +186,13 @@ ipcMain.handle('send-ai-message', async (event, { message, sessionId }) => {
                 reject(error);
             };
 
+            // 使用 once 而不是 on 来防止重复监听
             aiService.once('complete', completeHandler);
             aiService.once('error', errorHandler);
+            // content 事件可能会多次触发，所以使用 on
             aiService.on('content', contentHandler);
 
+            // 开始发送消息
             aiService.sendMessage(message, messages).catch(reject);
         });
 
@@ -202,6 +201,7 @@ ipcMain.handle('send-ai-message', async (event, { message, sessionId }) => {
         console.error('AI Service Error:', error);
         throw error;
     } finally {
+        // 确保清理所有监听器
         aiService.removeAllListeners();
         event.sender.send('ai-thinking', false);
     }

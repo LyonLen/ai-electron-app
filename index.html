@@ -27,42 +27,9 @@
 
     .message {
       display: flex;
+      align-items: flex-start;
       gap: 10px;
       margin: 15px 0;
-    }
-
-    .message-content {
-      flex-grow: 1;
-      padding: 10px;
-      border-radius: 8px;
-      background: #2a2a2a;
-    }
-
-    .reasoning-content {
-      font-style: italic;
-      color: #888;
-      border-left: 3px solid #666;
-      padding-left: 10px;
-      margin: 5px 0;
-      font-size: 0.9em;
-      background: rgba(40, 40, 40, 0.5);
-      border-radius: 4px;
-    }
-
-    .markdown-content {
-      white-space: pre-wrap;
-      margin-top: 10px;
-    }
-
-    .markdown-content pre {
-      background: #1e1e1e;
-      padding: 10px;
-      border-radius: 4px;
-      overflow-x: auto;
-    }
-
-    .markdown-content code {
-      font-family: 'Consolas', monospace;
     }
 
     .user-message {
@@ -363,131 +330,6 @@
 
     .new-session-button:hover {
       background: #444;
-    }
-
-    .think-block {
-      font-style: italic;
-      color: #888;
-      background: rgba(80, 80, 80, 0.2);
-      padding: 12px 16px;
-      margin: 8px 0;
-      border-left: 3px solid #666;
-      border-radius: 4px;
-      position: relative;
-      padding-left: 40px;
-    }
-
-    .think-block::before {
-      content: "💭";
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      opacity: 0.6;
-    }
-
-    .code-block {
-      background: #1a1a1a;
-      border: 1px solid #333;
-      border-radius: 6px;
-      padding: 12px;
-      margin: 12px 0;
-      font-family: 'Consolas', 'Monaco', monospace;
-      font-size: 0.9em;
-      line-height: 1.5;
-      white-space: pre;
-      overflow-x: auto;
-      color: #d4d4d4;
-    }
-
-    .think-content {
-      font-style: italic;
-      color: #888;
-      background: rgba(100, 100, 100, 0.1);
-      padding: 8px 12px;
-      margin: 4px 0;
-      border-left: 3px solid #666;
-      border-radius: 4px;
-      font-size: 0.9em;
-    }
-
-    .main-content {
-      margin-top: 8px;
-    }
-
-    .think-content {
-      display: none;
-      /* Hidden by default */
-      font-style: italic;
-      color: #888;
-      background: rgba(100, 100, 100, 0.1);
-      padding: 8px 12px;
-      margin: 4px 0;
-      border-left: 3px solid #666;
-      border-radius: 4px;
-      font-size: 0.9em;
-    }
-
-    .think-content:not(:empty) {
-      display: block;
-      /* Show when has content */
-    }
-
-    .main-content {
-      white-space: pre-wrap;
-      line-height: 1.5;
-    }
-
-    /* Add these styles to your existing CSS */
-    .message-content think {
-      display: block;
-      font-style: italic;
-      color: #888;
-      background: rgba(100, 100, 100, 0.1);
-      padding: 8px 12px;
-      margin: 4px 0;
-      border-left: 3px solid #666;
-      border-radius: 4px;
-      font-size: 0.9em;
-    }
-
-    .message-content pre {
-      background: #1e1e1e;
-      color: #d4d4d4;
-      padding: 12px;
-      border-radius: 6px;
-      overflow-x: auto;
-      margin: 8px 0;
-    }
-
-    .message-content code {
-      font-family: 'Consolas', 'Monaco', monospace;
-    }
-
-    .message-content pre code {
-      display: block;
-      white-space: pre;
-    }
-
-    .message-content p {
-      margin: 8px 0;
-    }
-
-    /* Language specific syntax highlighting */
-    .message-content pre[class*="language-"] {
-      position: relative;
-    }
-
-    .message-content pre[class*="language-"]::before {
-      content: attr(class);
-      position: absolute;
-      top: 0;
-      right: 0;
-      padding: 2px 8px;
-      font-size: 0.8em;
-      background: rgba(255, 255, 255, 0.1);
-      border-bottom-left-radius: 4px;
-      color: #888;
     }
   </style>
 </head>
@@ -901,7 +743,6 @@
 
     // Add to your script section
     let currentAIMessage = null;
-    let reasoningContent = null;
 
     // Listen for streaming updates
     ipcRenderer.on('ai-stream', async (event, content) => {
@@ -909,29 +750,10 @@
       if (!currentAIMessage || !currentAIMessage.isConnected) {
         console.log('Creating new AI message container');
         currentAIMessage = await addMessage('', false, false);
-        const contentDiv = currentAIMessage.querySelector('.message-content');
-
-        // Add containers for reasoning and markdown content
-        reasoningContent = document.createElement('div');
-        reasoningContent.className = 'reasoning-content';
-
-        const markdownContent = document.createElement('div');
-        markdownContent.className = 'markdown-content';
-
-        contentDiv.appendChild(reasoningContent);
-        contentDiv.appendChild(markdownContent);
       }
       const contentDiv = currentAIMessage.querySelector('.message-content');
       if (contentDiv) {
         contentDiv.textContent += content;
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-      }
-    });
-
-    // Add reasoning listener
-    ipcRenderer.on('ai-reasoning', async (event, content) => {
-      if (reasoningContent) {
-        reasoningContent.textContent = content;
         chatContainer.scrollTop = chatContainer.scrollHeight;
       }
     });
@@ -1097,250 +919,11 @@
       if (!currentAIMessage || !currentAIMessage.isConnected) {
         console.log('Creating new AI message container');
         currentAIMessage = await addMessage('', false, false);
-        const contentDiv = currentAIMessage.querySelector('.message-content');
-
-        // Add containers for reasoning and markdown content
-        reasoningContent = document.createElement('div');
-        reasoningContent.className = 'reasoning-content';
-
-        const markdownContent = document.createElement('div');
-        markdownContent.className = 'markdown-content';
-
-        contentDiv.appendChild(reasoningContent);
-        contentDiv.appendChild(markdownContent);
       }
       if (currentAIMessage) {
         const contentDiv = currentAIMessage.querySelector('.message-content');
         if (contentDiv) {
           contentDiv.textContent += content;
-          chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-      }
-    });
-
-    // Update the streaming handler
-    ipcRenderer.on('ai-stream', async (event, data) => {
-      console.log('Received stream data:', data);
-
-      if (!currentAIMessage || !currentAIMessage.isConnected) {
-        currentAIMessage = await addMessage('', false, false);
-        const contentDiv = currentAIMessage.querySelector('.message-content');
-
-        // Create separate containers
-        reasoningContent = document.createElement('div');
-        reasoningContent.className = 'reasoning-content';
-
-        const markdownContent = document.createElement('div');
-        markdownContent.className = 'markdown-content';
-
-        contentDiv.appendChild(reasoningContent);
-        contentDiv.appendChild(markdownContent);
-      }
-
-      // Handle different content types
-      if (data.type === 'reasoning') {
-        if (reasoningContent) {
-          reasoningContent.textContent = data.content;
-        }
-      } else {
-        const markdownContent = currentAIMessage.querySelector('.markdown-content');
-        if (markdownContent) {
-          markdownContent.textContent += data.content;
-        }
-      }
-
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    });
-
-    // Add session management functions
-    function deleteSession(sessionId) {
-      // Add confirmation dialog
-      if (confirm('确定要删除这个会话吗？')) {
-        ipcRenderer.invoke('delete-session', sessionId);
-        // Remove from UI
-        document.querySelector(`[data-session-id="${sessionId}"]`).remove();
-      }
-    }
-
-    function renameSession(sessionId) {
-      const newName = prompt('请输入新的会话名称：');
-      if (newName) {
-        ipcRenderer.invoke('rename-session', sessionId, newName);
-        // Update UI
-        document.querySelector(`[data-session-id="${sessionId}"]`).textContent = newName;
-      }
-    }
-
-    // Add keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-      // Ctrl/Cmd + Enter to send message
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        handleMessage();
-      }
-      // Ctrl/Cmd + N for new session
-      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-        e.preventDefault();
-        createNewSession();
-      }
-    });
-
-    // Add code highlighting support
-    function highlightCode(element) {
-      const codeBlocks = element.querySelectorAll('pre code');
-      codeBlocks.forEach((block) => {
-        hljs.highlightElement(block);
-      });
-    }
-
-    ipcRenderer.on('ai-stream', async (event, data) => {
-      console.log('Received stream data:', data);
-
-      if (!currentAIMessage || !currentAIMessage.isConnected) {
-        currentAIMessage = await addMessage('', false, false);
-        const contentDiv = currentAIMessage.querySelector('.message-content');
-
-        // Create containers for think and main content
-        const thinkContent = document.createElement('div');
-        thinkContent.className = 'think-content';
-
-        const mainContent = document.createElement('div');
-        mainContent.className = 'main-content';
-
-        contentDiv.appendChild(thinkContent);
-        contentDiv.appendChild(mainContent);
-      }
-
-      // Handle different content types
-      if (data.type === 'think') {
-        const thinkContent = currentAIMessage.querySelector('.think-content');
-        if (thinkContent) {
-          thinkContent.textContent = data.content;
-        }
-      } else {
-        const mainContent = currentAIMessage.querySelector('.main-content');
-        if (mainContent) {
-          mainContent.textContent += data.content;
-        }
-      }
-
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    });
-
-    ipcRenderer.removeAllListeners('ai-stream');
-    ipcRenderer.on('ai-stream', async (event, data) => {
-      console.log('Raw stream data:', data);
-
-      // Parse the data if it's a string
-      let parsedData = data;
-      if (typeof data === 'string') {
-        try {
-          parsedData = JSON.parse(data);
-        } catch (e) {
-          // If it's not JSON, treat it as regular content
-          parsedData = { type: 'content', content: data };
-        }
-      }
-
-      if (!currentAIMessage || !currentAIMessage.isConnected) {
-        currentAIMessage = await addMessage('', false, false);
-        const contentDiv = currentAIMessage.querySelector('.message-content');
-
-        // Create containers for think and main content
-        const thinkContent = document.createElement('div');
-        thinkContent.className = 'think-content';
-        thinkContent.style.display = 'none'; // Hidden by default
-
-        const mainContent = document.createElement('div');
-        mainContent.className = 'main-content';
-
-        contentDiv.appendChild(thinkContent);
-        contentDiv.appendChild(mainContent);
-      }
-
-      // Get the containers
-      const thinkContent = currentAIMessage.querySelector('.think-content');
-      const mainContent = currentAIMessage.querySelector('.main-content');
-
-      // Handle different content types
-      if (parsedData.type === 'think') {
-        if (thinkContent) {
-          thinkContent.style.display = 'block';
-          thinkContent.textContent = parsedData.content;
-        }
-      } else if (parsedData.content) {
-        if (mainContent) {
-          mainContent.textContent += parsedData.content;
-        }
-      }
-
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    });
-
-    ipcRenderer.removeAllListeners('ai-stream');
-    ipcRenderer.on('ai-stream', async (event, data) => {
-      console.log('Received stream data:', data);
-
-      if (!currentAIMessage || !currentAIMessage.isConnected) {
-        currentAIMessage = await addMessage('', false, false);
-        const contentDiv = currentAIMessage.querySelector('.message-content');
-        contentDiv.textContent = ''; // Clear existing content
-
-        // Create containers
-        const thinkContent = document.createElement('div');
-        thinkContent.className = 'think-content';
-
-        const mainContent = document.createElement('div');
-        mainContent.className = 'main-content';
-
-        contentDiv.appendChild(thinkContent);
-        contentDiv.appendChild(mainContent);
-      }
-
-      const contentDiv = currentAIMessage.querySelector('.message-content');
-      if (contentDiv) {
-        // Check if data is an object with type and content
-        if (typeof data === 'object' && data.type) {
-          if (data.type === 'think') {
-            const thinkContent = contentDiv.querySelector('.think-content');
-            if (thinkContent) {
-              thinkContent.textContent = data.content;
-            }
-          } else {
-            const mainContent = contentDiv.querySelector('.main-content');
-            if (mainContent) {
-              mainContent.textContent += data.content;
-            }
-          }
-        } else {
-          // Handle plain text content (backwards compatibility)
-          const mainContent = contentDiv.querySelector('.main-content');
-          if (mainContent) {
-            mainContent.textContent += data;
-          }
-        }
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-      }
-    });
-
-    ipcRenderer.on('ai-stream', async (event, content) => {
-      if (!currentAIMessage) {
-        currentAIMessage = await addMessage('', false, false);
-      }
-
-      if (currentAIMessage) {
-        const contentDiv = currentAIMessage.querySelector('.message-content');
-        if (contentDiv) {
-          // 处理 markdown 和 think 标签
-          const formattedContent = content
-            .replace(/<think>(.*?)<\/think>/g, (match, p1) => {
-              return `<div class="think-block">${p1}</div>`;
-            })
-            .replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
-              return `<pre class="code-block ${lang || ''}">${code}</pre>`;
-            });
-
-          // 累积内容
-          contentDiv.innerHTML += formattedContent;
           chatContainer.scrollTop = chatContainer.scrollHeight;
         }
       }

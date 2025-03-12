@@ -57,7 +57,6 @@ class AIService extends EventEmitter {
                                 const json = JSON.parse(data);
                                 const content = json.choices[0]?.delta?.content || '';
                                 const reasoning = json.choices[0]?.delta?.reasoning_content || '';
-                                console.log(JSON.stringify(json.choices[0]?.delta))
 
                                 if (reasoning) {
                                     if (!startThinking) {
