@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>AI Chat</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 10px;
+      background: rgba(30, 30, 30, 0.95);
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+
+    #chat-container {
+      margin-top: 30px;
+      height: calc(100vh - 130px);
+      overflow-y: auto;
+      margin-left: 200px;
+      transition: margin-left 0.3s ease;
+    }
+
+    #chat-container.sidebar-collapsed {
+      margin-left: 20px;
+    }
+
+    .message {
+      display: flex;
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .message-content {
+      flex-grow: 1;
+      padding: 10px;
+      border-radius: 8px;
+      background: #2a2a2a;
+    }
+
+    .reasoning-content {
+      font-style: italic;
+      color: #888;
+      border-left: 3px solid #666;
+      padding-left: 10px;
+      margin: 5px 0;
+      font-size: 0.9em;
+      background: rgba(40, 40, 40, 0.5);
+      border-radius: 4px;
+    }
+
+    .markdown-content {
+      white-space: pre-wrap;
+      margin-top: 10px;
+    }
+
+    .markdown-content pre {
+      background: #1e1e1e;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+
+    .markdown-content code {
+      font-family: 'Consolas', monospace;
+    }
+
+    .user-message {
+      flex-direction: row-reverse;
+      margin-left: 40px;
+    }
+
+    .ai-message {
+      margin-right: 40px;
+    }
+
+    .message-content {
+      flex-grow: 0;
+      /* Change from 1 to 0 to prevent stretching */
+      padding: 10px 15px;
+      /* Horizontal padding slightly larger */
+      border-radius: 5px;
+      max-width: 80%;
+      width: fit-content;
+      /* Make width fit the content */
+      min-width: 40px;
+      /* Minimum width for very short messages */
+      word-break: break-word;
+      /* Handle long words */
+      white-space: pre-wrap;
+      /* Preserve line breaks and spaces */
+      margin: 0 5px;
+      /* Add some horizontal spacing */
+    }
+
+    .user-message .message-content {
+      background: #2d2d2d;
+      border-radius: 10px 2px 10px 10px;
+    }
+
+    .ai-message .message-content {
+      background: #1a1a1a;
+      border-radius: 2px 10px 10px 10px;
+    }
+
+    .message-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    #input-container {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      width: calc(100% - 220px);
+      display: flex;
+      align-items: center;
+      margin-left: 200px;
+      transition: margin-left 0.3s ease, width 0.3s ease;
+      z-index: 1000;
+      /* Add this to keep input above content */
+    }
+
+    #input-container.sidebar-collapsed {
+      margin-left: 20px;
+      width: calc(100% - 40px);
+    }
+
+    #user-input {
+      flex-grow: 1;
+      padding: 10px;
+      border: 1px solid #444;
+      border-radius: 5px;
+      background: #2d2d2d;
+      color: #fff;
+      outline: none;
+      resize: none;
+      min-height: 20px;
+      max-height: 150px;
+      line-height: 20px;
+      overflow-y: hidden;
+    }
+
+    .titlebar {
+      -webkit-app-region: drag;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 30px;
+      background: #1a1a1a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 10px;
+      z-index: 1000;
+      user-select: none;
+      /* Prevent text selection */
+    }
+
+    .window-title {
+      -webkit-app-region: drag;
+      flex-grow: 1;
+      margin-right: auto;
+    }
+
+    .window-controls {
+      -webkit-app-region: no-drag;
+      display: flex;
+      align-items: center;
+    }
+
+    .window-control-button {
+      -webkit-app-region: no-drag;
+      background: none;
+      border: none;
+      color: #fff;
+      padding: 0 10px;
+      height: 30px;
+      cursor: pointer;
+    }
+
+    .minimize-button:hover {
+      background: #333;
+    }
+
+    .maximize-button:hover {
+      background: #333;
+    }
+
+    .close-button:hover {
+      background: #c42b1c;
+    }
+
+    .send-button {
+      margin-left: 8px;
+      background: #2d2d2d;
+      border: 1px solid #444;
+      border-radius: 5px;
+      color: #fff;
+      padding: 8px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 40px;
+      height: 40px;
+    }
+
+    .send-button:hover {
+      background: #333;
+    }
+
+    .send-button .loading-icon {
+      display: none;
+      animation: rotate 1s linear infinite;
+    }
+
+    .send-button.loading .send-icon {
+      display: none;
+    }
+
+    .send-button.loading .loading-icon {
+      display: inline;
+    }
+
+    @keyframes rotate {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Avatar related styles */
+    .avatar-button {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 8px;
+      cursor: pointer;
+      border: 2px solid #444;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .avatar-button img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .avatar-panel {
+      display: none;
+      position: fixed;
+      bottom: 70px;
+      left: 10px;
+      background: rgba(40, 40, 40, 0.95);
+      border: 1px solid #444;
+      border-radius: 5px;
+      padding: 10px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .avatar-option {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    .avatar-option:hover {
+      border-color: #fff;
+    }
+
+    .window-control-button.new-session {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .window-control-button.new-session:hover {
+      background: #444;
+    }
+
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 30px;
+      bottom: 0;
+      width: 200px;
+      background: rgba(35, 35, 35, 0.95);
+      border-right: 1px solid #444;
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar.collapsed {
+      transform: translateX(-180px);
+    }
+
+    .sidebar-header {
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #444;
+    }
+
+    .collapse-button {
+      background: none;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      padding: 5px;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar.collapsed .collapse-button {
+      transform: rotate(180deg);
+    }
+
+    .sessions-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .session-item {
+      padding: 8px;
+      margin: 4px 0;
+      border-radius: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .session-item:hover {
+      background: #444;
+    }
+
+    .session-item.active {
+      background: #2d2d2d;
+    }
+
+    .new-session-button {
+      margin: 10px;
+      padding: 8px;
+      background: #2d2d2d;
+      border: 1px solid #444;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .new-session-button:hover {
+      background: #444;
+    }
+
+    .think-block {
+      font-style: italic;
+      color: #888;
+      background: rgba(80, 80, 80, 0.2);
+      padding: 12px 16px;
+      margin: 8px 0;
+      border-left: 3px solid #666;
+      border-radius: 4px;
+      position: relative;
+      padding-left: 40px;
+    }
+
+    .think-block::before {
+      content: "💭";
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0.6;
+    }
+
+    .code-block {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 12px;
+      margin: 12px 0;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.9em;
+      line-height: 1.5;
+      white-space: pre;
+      overflow-x: auto;
+      color: #d4d4d4;
+    }
+
+    .think-content {
+      font-style: italic;
+      color: #888;
+      background: rgba(100, 100, 100, 0.1);
+      padding: 8px 12px;
+      margin: 4px 0;
+      border-left: 3px solid #666;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+
+    .main-content {
+      margin-top: 8px;
+    }
+
+    .think-content {
+      display: none;
+      /* Hidden by default */
+      font-style: italic;
+      color: #888;
+      background: rgba(100, 100, 100, 0.1);
+      padding: 8px 12px;
+      margin: 4px 0;
+      border-left: 3px solid #666;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+
+    .think-content:not(:empty) {
+      display: block;
+      /* Show when has content */
+    }
+
+    .main-content {
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+
+    /* Add these styles to your existing CSS */
+    .message-content think {
+      display: block;
+      font-style: italic;
+      color: #888;
+      background: rgba(100, 100, 100, 0.1);
+      padding: 8px 12px;
+      margin: 4px 0;
+      border-left: 3px solid #666;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+
+    .message-content pre {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 8px 0;
+    }
+
+    .message-content code {
+      font-family: 'Consolas', 'Monaco', monospace;
+    }
+
+    .message-content pre code {
+      display: block;
+      white-space: pre;
+    }
+
+    .message-content p {
+      margin: 8px 0;
+    }
+
+    /* Language specific syntax highlighting */
+    .message-content pre[class*="language-"] {
+      position: relative;
+    }
+
+    .message-content pre[class*="language-"]::before {
+      content: attr(class);
+      position: absolute;
+      top: 0;
+      right: 0;
+      padding: 2px 8px;
+      font-size: 0.8em;
+      background: rgba(255, 255, 255, 0.1);
+      border-bottom-left-radius: 4px;
+      color: #888;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="titlebar">
+    <div class="window-title">Lyon AI Studio</div>
+    <div class="window-controls">
+      <button class="window-control-button minimize-button" id="min-btn">─</button>
+      <button class="window-control-button maximize-button" id="max-btn">□</button>
+      <button class="window-control-button close-button" id="close-btn">✕</button>
+    </div>
+  </div>
+  <div id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <span>Chat Sessions</span>
+      <button id="collapse-btn" class="collapse-button">◀</button>
+    </div>
+    <div id="sessions-list" class="sessions-list"></div>
+    <button id="new-session-btn" class="new-session-button">+ New Chat</button>
+  </div>
+  <div id="chat-container"></div>
+  <div id="input-container">
+    <button id="avatar-button" class="avatar-button">
+      <img src="assets/avatars/default-avatar.png" alt="User Avatar" id="current-avatar">
+    </button>
+    <textarea id="user-input" placeholder="Ask me anything..." rows="1"></textarea>
+    <button id="send-button" class="send-button">
+      <span class="send-icon">➤</span>
+      <span class="loading-icon">●</span>
+    </button>
+  </div>
+  <div id="avatar-panel" class="avatar-panel">
+    <img src="assets/avatars/avatar-1.png" class="avatar-option" alt="Avatar 1">
+    <img src="assets/avatars/avatar-2.png" class="avatar-option" alt="Avatar 2">
+    <img src="assets/avatars/avatar-3.png" class="avatar-option" alt="Avatar 3">
+    <img src="assets/avatars/avatar-4.png" class="avatar-option" alt="Avatar 4">
+  </div>
+  <script>
+    const chatContainer = document.getElementById('chat-container');
+    const userInput = document.getElementById('user-input');
+    const minBtn = document.getElementById('min-btn');
+    const maxBtn = document.getElementById('max-btn');
+    const closeBtn = document.getElementById('close-btn');
+    const sendButton = document.getElementById('send-button');
+    const { ipcRenderer } = require('electron');
+    const avatarButton = document.getElementById('avatar-button');
+    const avatarPanel = document.getElementById('avatar-panel');
+    const currentAvatar = document.getElementById('current-avatar');
+    const botAvatar = 'assets/avatars/bot-avatar.png'; // Add a bot avatar image
+    let currentSessionId = Date.now().toString(); // Unique session ID
+
+    // Add these constants with the other ones
+    const sidebar = document.getElementById('sidebar');
+    const collapseBtn = document.getElementById('collapse-btn');
+    const sessionsList = document.getElementById('sessions-list');
+    const newSessionBtn = document.getElementById('new-session-button');
+
+    // Initialize session
+    async function initSession() {
+      await ipcRenderer.invoke('create-session', currentSessionId);
+      const messages = await ipcRenderer.invoke('get-session-messages', currentSessionId);
+      messages.forEach(msg => addMessage(msg.message, msg.isUser));
+    }
+
+    // Replace the addMessage function with this updated version
+    async function addMessage(message, isUser, save = true) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+
+      const avatar = document.createElement('img');
+      avatar.className = 'message-avatar';
+      avatar.src = isUser ? currentAvatar.src : botAvatar;
+      avatar.alt = isUser ? 'User Avatar' : 'Bot Avatar';
+
+      const content = document.createElement('div');
+      content.className = 'message-content';
+      content.textContent = message;
+
+      messageDiv.appendChild(avatar);
+      messageDiv.appendChild(content);
+      chatContainer.appendChild(messageDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      if (save) {
+        await ipcRenderer.invoke('save-message', {
+          sessionId: currentSessionId,
+          message,
+          isUser
+        });
+      }
+      return messageDiv; // Return the message element for streaming updates
+    }
+
+    // Update the handleMessage function in your script
+    async function handleMessage() {
+      if (userInput.value.trim() && !sendButton.classList.contains('loading')) {
+        const message = userInput.value.trim();
+        sendButton.classList.add('loading');
+        currentAIMessage = null;
+
+        try {
+          // Add user message
+          await addMessage(message, true);
+          userInput.value = '';
+
+          // Get AI response
+          await ipcRenderer.invoke('send-ai-message', {
+            message,
+            sessionId: currentSessionId
+          });
+
+          // Save the complete AI message
+          if (currentAIMessage) {
+            const aiContent = currentAIMessage.querySelector('.message-content').textContent;
+            await ipcRenderer.invoke('save-message', {
+              sessionId: currentSessionId,
+              message: aiContent,
+              isUser: false
+            });
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          await addMessage('Sorry, I encountered an error.', false);
+        } finally {
+          userInput.style.height = 'auto';
+          sendButton.classList.remove('loading');
+          removeThinkingIndicator();
+        }
+      }
+    }
+
+    // Update the createSessionItem function
+    function createSessionItem(sessionId) {
+      const item = document.createElement('div');
+      item.className = 'session-item';
+      item.textContent = `Chat ${new Date(parseInt(sessionId)).toLocaleTimeString()}`;
+      item.onclick = async () => {
+        if (currentSessionId === sessionId) return; // Skip if same session
+
+        document.querySelectorAll('.session-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+
+        // Clear chat and update session ID before loading messages
+        chatContainer.innerHTML = '';
+        currentSessionId = sessionId;
+
+        try {
+          const messages = await ipcRenderer.invoke('get-session-messages', sessionId);
+          if (Array.isArray(messages)) {
+            for (const msg of messages) {
+              // Use existing addMessage function with save=false
+              await addMessage(msg.message, msg.isUser, false);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading messages:', error);
+        }
+      };
+      return item;
+    }
+
+    // Update the handleMessage function
+    async function handleMessage() {
+      if (userInput.value.trim() && !sendButton.classList.contains('loading')) {
+        const message = userInput.value.trim();
+        sendButton.classList.add('loading');
+        currentAIMessage = null;
+
+        try {
+          // Add and save user message
+          await addMessage(message, true, true);
+          userInput.value = '';
+
+          // Get AI response
+          await ipcRenderer.invoke('send-ai-message', {
+            message,
+            sessionId: currentSessionId
+          });
+
+          // Save the complete AI message if streaming completed
+          if (currentAIMessage) {
+            const aiContent = currentAIMessage.querySelector('.message-content').textContent;
+            if (aiContent) {
+              await ipcRenderer.invoke('save-message', {
+                sessionId: currentSessionId,
+                message: aiContent,
+                isUser: false
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          await addMessage('Sorry, I encountered an error.', false, true);
+        } finally {
+          userInput.style.height = 'auto';
+          sendButton.classList.remove('loading');
+          removeThinkingIndicator();
+        }
+      }
+    }
+
+    userInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleMessage();
+      }
+    });
+
+    // Auto-resize input field
+    userInput.addEventListener('input', function () {
+      this.style.height = 'auto';
+      const height = Math.min(this.scrollHeight, 150);
+      this.style.height = height + 'px';
+    });
+
+    // Window control buttons
+    minBtn.addEventListener('click', () => {
+      ipcRenderer.send('minimize-window');
+    });
+
+    maxBtn.addEventListener('click', () => {
+      ipcRenderer.send('maximize-window');
+      // Update button text based on window state
+      ipcRenderer.invoke('is-maximized').then(isMaximized => {
+        maxBtn.textContent = isMaximized ? '❐' : '□';
+      });
+    });
+
+    // Add listener for window state changes
+    ipcRenderer.on('window-state-change', (event, isMaximized) => {
+      maxBtn.textContent = isMaximized ? '❐' : '□';
+    });
+
+    // Update only the close button event listener
+    closeBtn.addEventListener('click', () => {
+      ipcRenderer.send('close-window');
+    });
+
+    // 在 window control buttons 相关代码附近添加
+    const titlebar = document.querySelector('.titlebar');
+
+    // Add double click handler for titlebar
+    titlebar.addEventListener('dblclick', (e) => {
+      // Only trigger if clicking directly on titlebar, not on buttons
+      if (e.target === titlebar || e.target.classList.contains('window-title')) {
+        ipcRenderer.send('toggle-maximize-window');
+      }
+    });
+
+    // Add console logs to debug titlebar events
+    console.log('Titlebar element:', titlebar); // Check if element is found
+
+    titlebar.addEventListener('dblclick', (e) => {
+      console.log('Titlebar double clicked:', {
+        target: e.target,
+        isDirectClick: e.target === titlebar,
+        hasWindowTitle: e.target.classList.contains('window-title')
+      });
+
+      // Only trigger if clicking directly on titlebar or window-title
+      if (e.target === titlebar || e.target.classList.contains('window-title')) {
+        console.log('Sending toggle-maximize-window event');
+        ipcRenderer.send('toggle-maximize-window');
+      }
+    });
+
+    // Add window state change listener to verify IPC communication
+    ipcRenderer.on('window-state-change', (event, isMaximized) => {
+      console.log('Window state changed:', isMaximized);
+      maxBtn.textContent = isMaximized ? '❐' : '□';
+    });
+
+    // Adjust chat container height on window resize
+    window.addEventListener('resize', () => {
+      const titlebarHeight = 30;
+      const inputContainerHeight = document.getElementById('input-container').offsetHeight;
+      chatContainer.style.height = `calc(100vh - ${titlebarHeight + inputContainerHeight + 20}px)`;
+    });
+
+    // Add send button click handler
+    sendButton.addEventListener('click', handleMessage);
+
+    // Avatar panel toggle
+    avatarButton.addEventListener('click', () => {
+      avatarPanel.style.display = avatarPanel.style.display === 'grid' ? 'none' : 'grid';
+    });
+
+    // Avatar selection
+    document.querySelectorAll('.avatar-option').forEach(avatar => {
+      avatar.addEventListener('click', () => {
+        currentAvatar.src = avatar.src;
+        avatarPanel.style.display = 'none';
+      });
+    });
+
+    // Close avatar panel when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!avatarButton.contains(e.target) && !avatarPanel.contains(e.target)) {
+        avatarPanel.style.display = 'none';
+      }
+    });
+
+    // Add sidebar collapse functionality
+    collapseBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      chatContainer.classList.toggle('sidebar-collapsed');
+      document.getElementById('input-container').classList.toggle('sidebar-collapsed');
+    });
+
+    // Update session management
+    // Update the createSessionItem function
+    function createSessionItem(sessionId) {
+      const item = document.createElement('div');
+      item.className = 'session-item';
+      item.textContent = `Chat ${new Date(parseInt(sessionId)).toLocaleTimeString()}`;
+      item.onclick = async () => {
+        if (currentSessionId === sessionId) return; // Skip if same session
+
+        document.querySelectorAll('.session-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+
+        // Clear chat and update session ID before loading messages
+        chatContainer.innerHTML = '';
+        currentSessionId = sessionId;
+
+        try {
+          const messages = await ipcRenderer.invoke('get-session-messages', sessionId);
+          if (Array.isArray(messages)) {
+            messages.forEach(msg => {
+              addMessage(msg.message, msg.isUser, false); // Add false to skip saving
+            });
+          }
+        } catch (error) {
+          console.error('Error loading messages:', error);
+        }
+      };
+      return item;
+    }
+
+    // Update createNewSession function
+    async function createNewSession() {
+      document.querySelectorAll('.session-item').forEach(i => i.classList.remove('active'));
+
+      chatContainer.innerHTML = '';
+      currentSessionId = Date.now().toString();
+
+      try {
+        await ipcRenderer.invoke('create-session', currentSessionId);
+        const sessionItem = createSessionItem(currentSessionId);
+        sessionsList.appendChild(sessionItem);
+        sessionItem.classList.add('active');
+        sessionItem.scrollIntoView({ behavior: 'smooth' });
+      } catch (error) {
+        console.error('Error creating session:', error);
+      }
+    }
+
+    // Replace the existing new session button with this
+    document.getElementById('new-session-btn').addEventListener('click', createNewSession);
+
+    // Add to your script section after constants
+
+    // Load all existing sessions
+    async function loadExistingSessions() {
+      try {
+        const sessionIds = await ipcRenderer.invoke('get-all-sessions');
+        if (!Array.isArray(sessionIds)) {
+          console.error('Invalid sessions data:', sessionIds);
+          return;
+        }
+
+        // Clear existing sessions
+        sessionsList.innerHTML = '';
+
+        // Sort sessions by date (newest first)
+        sessionIds.sort((a, b) => parseInt(b) - parseInt(a));
+
+        for (const sessionId of sessionIds) {
+          const sessionItem = createSessionItem(sessionId);
+          sessionsList.appendChild(sessionItem);
+        }
+
+        if (sessionIds.length > 0) {
+          // Load most recent session
+          currentSessionId = sessionIds[0];
+          const firstSessionItem = sessionsList.firstChild;
+          firstSessionItem.classList.add('active');
+
+          // Load messages for first session
+          const messages = await ipcRenderer.invoke('get-session-messages', currentSessionId);
+          chatContainer.innerHTML = ''; // Clear chat container
+          if (Array.isArray(messages)) {
+            for (const msg of messages) {
+              await addMessage(msg.message, msg.isUser, false);
+            }
+          }
+        } else {
+          await createNewSession();
+        }
+      } catch (error) {
+        console.error('Error loading sessions:', error);
+        await createNewSession();
+      }
+    }
+
+    // Update initialization
+    window.addEventListener('DOMContentLoaded', async () => {
+      await loadExistingSessions();
+    });
+
+    // Add to your script section
+    let currentAIMessage = null;
+    let reasoningContent = null;
+
+    // Listen for streaming updates
+    ipcRenderer.on('ai-stream', async (event, content) => {
+      console.log('Received stream content:', content);
+      if (!currentAIMessage || !currentAIMessage.isConnected) {
+        console.log('Creating new AI message container');
+        currentAIMessage = await addMessage('', false, false);
+        const contentDiv = currentAIMessage.querySelector('.message-content');
+
+        // Add containers for reasoning and markdown content
+        reasoningContent = document.createElement('div');
+        reasoningContent.className = 'reasoning-content';
+
+        const markdownContent = document.createElement('div');
+        markdownContent.className = 'markdown-content';
+
+        contentDiv.appendChild(reasoningContent);
+        contentDiv.appendChild(markdownContent);
+      }
+      const contentDiv = currentAIMessage.querySelector('.message-content');
+      if (contentDiv) {
+        contentDiv.textContent += content;
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    });
+
+    // Add reasoning listener
+    ipcRenderer.on('ai-reasoning', async (event, content) => {
+      if (reasoningContent) {
+        reasoningContent.textContent = content;
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    });
+
+    // Listen for thinking state
+    ipcRenderer.on('ai-thinking', (event, isThinking) => {
+      if (isThinking) {
+        sendButton.classList.add('thinking');
+        // Add thinking indicator
+        addThinkingIndicator();
+      } else {
+        sendButton.classList.remove('thinking');
+        // Remove thinking indicator
+        removeThinkingIndicator();
+      }
+    });
+
+    // Add thinking indicator styles
+    const style = document.createElement('style');
+    style.textContent = `
+      .thinking-indicator {
+        padding: 10px;
+        color: #888;
+        font-style: italic;
+      }
+      
+      .send-button.thinking {
+        animation: pulse 1.5s infinite;
+      }
+      
+      @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+      }
+    `;
+    document.head.appendChild(style);
+
+    function addThinkingIndicator() {
+      const indicator = document.createElement('div');
+      indicator.className = 'thinking-indicator';
+      indicator.textContent = '思考中...';
+      chatContainer.appendChild(indicator);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function removeThinkingIndicator() {
+      const indicator = document.querySelector('.thinking-indicator');
+      if (indicator) {
+        indicator.remove();
+      }
+    }
+
+    // Update handleMessage function
+    async function handleMessage() {
+      if (userInput.value.trim() && !sendButton.classList.contains('loading')) {
+        const message = userInput.value.trim();
+        console.log('Sending message:', message);
+        sendButton.classList.add('loading');
+        currentAIMessage = null; // 重置 currentAIMessage
+
+        try {
+          // Add user message
+          await addMessage(message, true);
+          userInput.value = '';
+          console.log('User message added to chat');
+
+          // Get AI response
+          console.log('Requesting AI response...');
+          await ipcRenderer.invoke('send-ai-message', {
+            message,
+            sessionId: currentSessionId
+          });
+
+          // 保存完整的 AI 消息
+          if (currentAIMessage && currentAIMessage.isConnected) {
+            const aiContent = currentAIMessage.querySelector('.message-content').textContent;
+            if (aiContent) {
+              await ipcRenderer.invoke('save-message', {
+                sessionId: currentSessionId,
+                message: aiContent,
+                isUser: false
+              });
+            }
+            currentAIMessage = null; // 消息完成后重置
+          }
+        } catch (error) {
+          console.error('Error in handleMessage:', error);
+          await addMessage('Sorry, I encountered an error.', false);
+        } finally {
+          userInput.style.height = 'auto';
+          sendButton.classList.remove('loading');
+          removeThinkingIndicator();
+          currentAIMessage = null; // 确保在任何情况下都重置
+        }
+      }
+    }
+
+    // Update streaming listener
+    ipcRenderer.on('ai-stream', async (event, content) => {
+      console.log('Received stream content:', content);
+      if (!currentAIMessage) {
+        console.log('Creating new AI message container');
+        currentAIMessage = await addMessage('', false, false); // 保存返回的 div
+      }
+      if (currentAIMessage) {
+        const contentDiv = currentAIMessage.querySelector('.message-content');
+        if (contentDiv) {
+          contentDiv.textContent += content;
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+      }
+    });
+
+    // 保留这个最终版本的 handleMessage
+    async function handleMessage() {
+      if (userInput.value.trim() && !sendButton.classList.contains('loading')) {
+        const message = userInput.value.trim();
+        console.log('Sending message:', message);
+        sendButton.classList.add('loading');
+        currentAIMessage = null; // Reset currentAIMessage
+
+        try {
+          // Add user message
+          await addMessage(message, true);
+          userInput.value = '';
+          console.log('User message added to chat');
+
+          // Get AI response
+          console.log('Requesting AI response...');
+          await ipcRenderer.invoke('send-ai-message', {
+            message,
+            sessionId: currentSessionId
+          });
+
+          // Save complete AI message
+          if (currentAIMessage && currentAIMessage.isConnected) {
+            const aiContent = currentAIMessage.querySelector('.message-content').textContent;
+            if (aiContent) {
+              await ipcRenderer.invoke('save-message', {
+                sessionId: currentSessionId,
+                message: aiContent,
+                isUser: false
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error in handleMessage:', error);
+          await addMessage('Sorry, I encountered an error.', false);
+        } finally {
+          userInput.style.height = 'auto';
+          sendButton.classList.remove('loading');
+          removeThinkingIndicator();
+          currentAIMessage = null; // Ensure reset in all cases
+        }
+      }
+    }
+
+    // 保留这个版本的 streaming 监听器
+    ipcRenderer.removeAllListeners('ai-stream'); // 先移除所有现有的监听器
+    ipcRenderer.on('ai-stream', async (event, content) => {
+      console.log('Received stream content:', content);
+      if (!currentAIMessage || !currentAIMessage.isConnected) {
+        console.log('Creating new AI message container');
+        currentAIMessage = await addMessage('', false, false);
+        const contentDiv = currentAIMessage.querySelector('.message-content');
+
+        // Add containers for reasoning and markdown content
+        reasoningContent = document.createElement('div');
+        reasoningContent.className = 'reasoning-content';
+
+        const markdownContent = document.createElement('div');
+        markdownContent.className = 'markdown-content';
+
+        contentDiv.appendChild(reasoningContent);
+        contentDiv.appendChild(markdownContent);
+      }
+      if (currentAIMessage) {
+        const contentDiv = currentAIMessage.querySelector('.message-content');
+        if (contentDiv) {
+          contentDiv.textContent += content;
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+      }
+    });
+
+    // Update the streaming handler
+    ipcRenderer.on('ai-stream', async (event, data) => {
+      console.log('Received stream data:', data);
+
+      if (!currentAIMessage || !currentAIMessage.isConnected) {
+        currentAIMessage = await addMessage('', false, false);
+        const contentDiv = currentAIMessage.querySelector('.message-content');
+
+        // Create separate containers
+        reasoningContent = document.createElement('div');
+        reasoningContent.className = 'reasoning-content';
+
+        const markdownContent = document.createElement('div');
+        markdownContent.className = 'markdown-content';
+
+        contentDiv.appendChild(reasoningContent);
+        contentDiv.appendChild(markdownContent);
+      }
+
+      // Handle different content types
+      if (data.type === 'reasoning') {
+        if (reasoningContent) {
+          reasoningContent.textContent = data.content;
+        }
+      } else {
+        const markdownContent = currentAIMessage.querySelector('.markdown-content');
+        if (markdownContent) {
+          markdownContent.textContent += data.content;
+        }
+      }
+
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    });
+
+    // Add session management functions
+    function deleteSession(sessionId) {
+      // Add confirmation dialog
+      if (confirm('确定要删除这个会话吗？')) {
+        ipcRenderer.invoke('delete-session', sessionId);
+        // Remove from UI
+        document.querySelector(`[data-session-id="${sessionId}"]`).remove();
+      }
+    }
+
+    function renameSession(sessionId) {
+      const newName = prompt('请输入新的会话名称：');
+      if (newName) {
+        ipcRenderer.invoke('rename-session', sessionId, newName);
+        // Update UI
+        document.querySelector(`[data-session-id="${sessionId}"]`).textContent = newName;
+      }
+    }
+
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // Ctrl/Cmd + Enter to send message
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        handleMessage();
+      }
+      // Ctrl/Cmd + N for new session
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        createNewSession();
+      }
+    });
+
+    // Add code highlighting support
+    function highlightCode(element) {
+      const codeBlocks = element.querySelectorAll('pre code');
+      codeBlocks.forEach((block) => {
+        hljs.highlightElement(block);
+      });
+    }
+
+    ipcRenderer.on('ai-stream', async (event, data) => {
+      console.log('Received stream data:', data);
+
+      if (!currentAIMessage || !currentAIMessage.isConnected) {
+        currentAIMessage = await addMessage('', false, false);
+        const contentDiv = currentAIMessage.querySelector('.message-content');
+
+        // Create containers for think and main content
+        const thinkContent = document.createElement('div');
+        thinkContent.className = 'think-content';
+
+        const mainContent = document.createElement('div');
+        mainContent.className = 'main-content';
+
+        contentDiv.appendChild(thinkContent);
+        contentDiv.appendChild(mainContent);
+      }
+
+      // Handle different content types
+      if (data.type === 'think') {
+        const thinkContent = currentAIMessage.querySelector('.think-content');
+        if (thinkContent) {
+          thinkContent.textContent = data.content;
+        }
+      } else {
+        const mainContent = currentAIMessage.querySelector('.main-content');
+        if (mainContent) {
+          mainContent.textContent += data.content;
+        }
+      }
+
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    });
+
+    ipcRenderer.removeAllListeners('ai-stream');
+    ipcRenderer.on('ai-stream', async (event, data) => {
+      console.log('Raw stream data:', data);
+
+      // Parse the data if it's a string
+      let parsedData = data;
+      if (typeof data === 'string') {
+        try {
+          parsedData = JSON.parse(data);
+        } catch (e) {
+          // If it's not JSON, treat it as regular content
+          parsedData = { type: 'content', content: data };
+        }
+      }
+
+      if (!currentAIMessage || !currentAIMessage.isConnected) {
+        currentAIMessage = await addMessage('', false, false);
+        const contentDiv = currentAIMessage.querySelector('.message-content');
+
+        // Create containers for think and main content
+        const thinkContent = document.createElement('div');
+        thinkContent.className = 'think-content';
+        thinkContent.style.display = 'none'; // Hidden by default
+
+        const mainContent = document.createElement('div');
+        mainContent.className = 'main-content';
+
+        contentDiv.appendChild(thinkContent);
+        contentDiv.appendChild(mainContent);
+      }
+
+      // Get the containers
+      const thinkContent = currentAIMessage.querySelector('.think-content');
+      const mainContent = currentAIMessage.querySelector('.main-content');
+
+      // Handle different content types
+      if (parsedData.type === 'think') {
+        if (thinkContent) {
+          thinkContent.style.display = 'block';
+          thinkContent.textContent = parsedData.content;
+        }
+      } else if (parsedData.content) {
+        if (mainContent) {
+          mainContent.textContent += parsedData.content;
+        }
+      }
+
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    });
+
+    ipcRenderer.removeAllListeners('ai-stream');
+    ipcRenderer.on('ai-stream', async (event, data) => {
+      console.log('Received stream data:', data);
+
+      if (!currentAIMessage || !currentAIMessage.isConnected) {
+        currentAIMessage = await addMessage('', false, false);
+        const contentDiv = currentAIMessage.querySelector('.message-content');
+        contentDiv.textContent = ''; // Clear existing content
+
+        // Create containers
+        const thinkContent = document.createElement('div');
+        thinkContent.className = 'think-content';
+
+        const mainContent = document.createElement('div');
+        mainContent.className = 'main-content';
+
+        contentDiv.appendChild(thinkContent);
+        contentDiv.appendChild(mainContent);
+      }
+
+      const contentDiv = currentAIMessage.querySelector('.message-content');
+      if (contentDiv) {
+        // Check if data is an object with type and content
+        if (typeof data === 'object' && data.type) {
+          if (data.type === 'think') {
+            const thinkContent = contentDiv.querySelector('.think-content');
+            if (thinkContent) {
+              thinkContent.textContent = data.content;
+            }
+          } else {
+            const mainContent = contentDiv.querySelector('.main-content');
+            if (mainContent) {
+              mainContent.textContent += data.content;
+            }
+          }
+        } else {
+          // Handle plain text content (backwards compatibility)
+          const mainContent = contentDiv.querySelector('.main-content');
+          if (mainContent) {
+            mainContent.textContent += data;
+          }
+        }
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    });
+
+    ipcRenderer.on('ai-stream', async (event, content) => {
+      if (!currentAIMessage) {
+        currentAIMessage = await addMessage('', false, false);
+      }
+
+      if (currentAIMessage) {
+        const contentDiv = currentAIMessage.querySelector('.message-content');
+        if (contentDiv) {
+          // 处理 markdown 和 think 标签
+          const formattedContent = content
+            .replace(/<think>(.*?)<\/think>/g, (match, p1) => {
+              return `<div class="think-block">${p1}</div>`;
+            })
+            .replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+              return `<pre class="code-block ${lang || ''}">${code}</pre>`;
+            });
+
+          // 累积内容
+          contentDiv.innerHTML += formattedContent;
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>
