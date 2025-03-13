@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { app, BrowserWindow, ipcMain } = require('electron')
+const { app, BrowserWindow, ipcMain, globalShortcut } = require('electron')
 const path = require('path')
 const fs = require('fs').promises;
 const aiService = require('./services/ai-service');
@@ -76,6 +76,11 @@ app.whenReady().then(async () => {
     await initSessionsDirectory();
     await loadSessions();
     createWindow();
+
+    // 添加快捷键
+    globalShortcut.register('CommandOrControl+Shift+I', () => {
+        mainWindow.webContents.toggleDevTools();
+    });
 })
 
 // Handle window controls
@@ -161,6 +166,22 @@ ipcMain.handle('save-message', async (event, { sessionId, message, isUser }) => 
 // Get all sessions
 ipcMain.handle('get-all-sessions', async () => {
     return Array.from(sessions.keys());
+});
+
+ipcMain.handle('delete-session', async (event, sessionId) => {
+    try {
+        // Remove from memory
+        sessions.delete(sessionId);
+
+        // Remove file from disk
+        const filePath = path.join(sessionsPath, `${sessionId}.json`);
+        await fs.unlink(filePath);
+
+        return true;
+    } catch (error) {
+        console.error('Error deleting session:', error);
+        throw error;
+    }
 });
 
 // Add new IPC handler for AI messages

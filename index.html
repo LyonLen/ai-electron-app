@@ -107,36 +107,6 @@
       return messageDiv; // Return the message element for streaming updates
     }
 
-    // Update the createSessionItem function
-    function createSessionItem(sessionId) {
-      const item = document.createElement('div');
-      item.className = 'session-item';
-      item.textContent = `Chat ${new Date(parseInt(sessionId)).toLocaleTimeString()}`;
-      item.onclick = async () => {
-        if (currentSessionId === sessionId) return; // Skip if same session
-
-        document.querySelectorAll('.session-item').forEach(i => i.classList.remove('active'));
-        item.classList.add('active');
-
-        // Clear chat and update session ID before loading messages
-        chatContainer.innerHTML = '';
-        currentSessionId = sessionId;
-
-        try {
-          const messages = await ipcRenderer.invoke('get-session-messages', sessionId);
-          if (Array.isArray(messages)) {
-            for (const msg of messages) {
-              // Use existing addMessage function with save=false
-              await addMessage(msg.message, msg.isUser, false);
-            }
-          }
-        } catch (error) {
-          console.error('Error loading messages:', error);
-        }
-      };
-      return item;
-    }
-
     userInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -249,8 +219,28 @@
     // Update the createSessionItem function
     function createSessionItem(sessionId) {
       const item = document.createElement('div');
+      item.setAttribute('sessionId', sessionId);
       item.className = 'session-item';
-      item.textContent = `Chat ${new Date(parseInt(sessionId)).toLocaleTimeString()}`;
+      const titleSpan = document.createElement('span');
+      titleSpan.className = 'session-title';
+      titleSpan.textContent = `Chat ${new Date(parseInt(sessionId)).toLocaleTimeString()}`;
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'session-delete-btn';
+      deleteBtn.innerHTML = '×';
+      deleteBtn.title = 'Delete chat';
+
+      // Delete button click handler
+      deleteBtn.onclick = async (e) => {
+        e.stopPropagation(); // Prevent session switching when clicking delete
+        if (confirm('Are you sure you want to delete this chat?')) {
+          await deleteSession(sessionId);
+        }
+      };
+
+      item.appendChild(titleSpan);
+      item.appendChild(deleteBtn);
+
       item.onclick = async () => {
         if (currentSessionId === sessionId) return; // Skip if same session
 
@@ -411,6 +401,37 @@
           sendButton.classList.remove('loading');
           currentAIMessage = null; // Ensure reset in all cases
         }
+      }
+    }
+
+    async function deleteSession(sessionId) {
+      try {
+        await ipcRenderer.invoke('delete-session', sessionId);
+
+        // Remove session from UI according to ID
+        const sessionItem = sessionsList.querySelector(`.session-item[sessionId="${sessionId}"]`);
+        if (sessionItem) {
+          sessionItem.remove();
+          console.log('Session deleted:', sessionId);
+        }
+        console.log('Session deleted:', sessionItem);
+
+        // If we deleted the current session, switch a new one
+        if (sessionId === currentSessionId) {
+          // switch the first session
+          const firstSessionItem = sessionsList.firstChild;
+          if (firstSessionItem) {
+            firstSessionItem.click();
+          }
+        }
+
+        // If no sessions left, create a new one
+        if (sessionsList.children.length === 0) {
+          await createNewSession();
+        }
+      } catch (error) {
+        console.error('Error deleting session:', error);
+        alert('Error deleting session: ' + error.message);
       }
     }
 
