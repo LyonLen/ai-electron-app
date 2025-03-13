@@ -96,10 +96,9 @@ Summary the conversation, simply response.` }
                             if (data === '[DONE]') continue;
                             try {
                                 const json = JSON.parse(data);
-                                const content = json.choices[0]?.delta?.content || '';
-                                const reasoning = json.choices[0]?.delta?.reasoning_content || '';
-
-                                if (reasoning) {
+                                const content = json.choices[0]?.delta?.content;
+                                const reasoning = json.choices[0]?.delta?.reasoning_content;
+                                if (reasoning || reasoning === '') {
                                     if (!startThinking) {
                                         this.emit('content', { content: '<think>' });
                                         startThinking = true;
