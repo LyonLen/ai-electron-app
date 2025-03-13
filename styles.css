@@ -92,10 +92,46 @@ body {
     color: #fff;
     outline: none;
     resize: none;
+    /* 固定高度 */
+    height: 20px;
     min-height: 20px;
-    max-height: 150px;
-    line-height: 20px;
-    overflow-y: hidden;
+    max-height: 20px;
+    /* 改为auto允许滚动 */
+    overflow-y: auto;
+
+    /* 滚动条样式 */
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+
+    /* Webkit browsers 滚动条样式 */
+    &::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+        transition: background-color 0.2s;
+    }
+
+    /* 悬停时显示滚动条 */
+    &:hover {
+        scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+
+        &::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+    }
+
+    /* 激活时的滚动条样式 */
+    &::-webkit-scrollbar-thumb:active {
+        background-color: rgba(255, 255, 255, 0.4);
+    }
 }
 
 .titlebar {
