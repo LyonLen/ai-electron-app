@@ -3,6 +3,7 @@ const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('path')
 const fs = require('fs').promises;
 const aiService = require('./services/ai-service');
+const { get } = require('http');
 
 let mainWindow;
 let sessions = new Map(); // Store chat sessions
@@ -28,7 +29,7 @@ async function loadSessions() {
                 const sessionId = file.replace('.json', '');
                 const data = await fs.readFile(path.join(sessionsPath, file), 'utf8');
                 const sessionData = JSON.parse(data);
-                sessions.set(sessionId, sessionData.messages || []);
+                sessions.set(sessionId, sessionData || getSessionData());
             }
         }
     } catch (error) {
@@ -37,12 +38,8 @@ async function loadSessions() {
 }
 
 // Save session to disk
-async function saveSession(sessionId, messages) {
+async function saveSession(sessionId, sessionData) {
     try {
-        const sessionData = {
-            messages: messages,
-            lastEditTime: Date.now()
-        };
         const filePath = path.join(sessionsPath, `${sessionId}.json`);
         await fs.writeFile(filePath, JSON.stringify(sessionData), 'utf8');
     } catch (error) {
@@ -117,11 +114,16 @@ ipcMain.handle('is-maximized', () => {
     return mainWindow.isMaximized();
 });
 
+function getSessionData() {
+    return { messages: [], lastEditTime: Date.now() };
+}
+
 // Update IPC handlers
 ipcMain.handle('create-session', async (event, sessionId) => {
     if (!sessions.has(sessionId)) {
-        sessions.set(sessionId, []);
-        await saveSession(sessionId, []);
+        const newData = getSessionData()
+        sessions.set(sessionId, newData);
+        await saveSession(sessionId, newData);
     }
     return sessionId;
 });
@@ -138,17 +140,17 @@ ipcMain.handle('get-session-data', async (event, sessionId) => {
 });
 
 ipcMain.handle('get-session-messages', async (event, sessionId) => {
-    const messages = sessions.get(sessionId) || [];
+    const messages = sessions.get(sessionId).messages || [];
     return messages;
 });
 
 ipcMain.handle('save-message', async (event, { sessionId, message, isUser }) => {
     if (!sessions.has(sessionId)) {
-        sessions.set(sessionId, []);
+        sessions.set(sessionId, getSessionData());
     }
-    const messages = sessions.get(sessionId);
+    const messages = sessions.get(sessionId).messages;
     messages.push({ message, isUser, timestamp: Date.now() });
-    await saveSession(sessionId, messages);
+    await saveSession(sessionId, { messages: messages, lastEditTime: Date.now() });
     return messages;
 });
 
@@ -160,7 +162,7 @@ ipcMain.handle('get-all-sessions', async () => {
 // Add new IPC handler for AI messages
 ipcMain.handle('send-ai-message', async (event, { message, sessionId }) => {
     try {
-        const messages = sessions.get(sessionId) || [];
+        const messages = sessions.get(sessionId).messages || [];
 
         let contentAccumulator = '';
 
