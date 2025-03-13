@@ -566,61 +566,34 @@ em {
 }
 
 .code-block {
-    margin: 8px -16px;
+    margin: 4px 0;
     background: #1e1e1e;
     overflow: hidden;
-    border-top: 1px solid #363636;
-    border-bottom: 1px solid #363636;
+    border-radius: 6px;
+    border: 1px solid #363636;
     width: max-content;
-    max-width: calc(100% + 30px);
-    /* Prevent overflow */
+    max-width: calc(100% + 2px);
     font-family: 'Consolas', 'Monaco', monospace;
     position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 .code-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 16px;
+    padding: 4px 12px;
     background: #252526;
     border-bottom: 1px solid #363636;
-    min-width: calc(100% - 24px);
-    /* Account for padding */
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-.code-lang {
-    font-size: 12px;
-    color: #7a7a7a;
-    text-transform: lowercase;
-}
-
-.copy-btn {
-    padding: 3px 8px;
-    font-size: 12px;
-    color: #cccccc;
-    background: transparent;
-    border: 1px solid #404040;
-    border-radius: 3px;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-left: 12px;
-}
-
-.copy-btn:hover {
-    background: #2d2d2d;
-    border-color: #505050;
-}
-
-.copy-btn:active {
-    background: #333333;
 }
 
 pre {
     margin: 0;
-    padding: 12px 16px;
+    padding: 8px 12px;
     overflow-x: auto;
+    display: flex;
 }
 
 code {
@@ -628,4 +601,16 @@ code {
     font-size: 13px;
     line-height: 1.4;
     white-space: pre;
+}
+
+.copy-btn {
+    padding: 2px 8px;
+    font-size: 12px;
+    color: #cccccc;
+    background: transparent;
+    border: 1px solid #404040;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-left: 8px;
 }
