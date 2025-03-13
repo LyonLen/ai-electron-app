@@ -93,7 +93,7 @@
 
       const content = document.createElement('div');
       content.className = 'message-content';
-      content.textContent = message.message || message;
+      content.innerHTML = message.message || message;
 
       // 添加时间显示
       const timeDiv = document.createElement('div');
@@ -446,7 +446,7 @@
 
           // Save complete AI message
           if (currentAIMessage && currentAIMessage.isConnected) {
-            const aiContent = currentAIMessage.querySelector('.message-content').textContent;
+            const aiContent = currentAIMessage.querySelector('.message-content').innerHTML;
             if (aiContent) {
               await Promise.all([
                 ipcRenderer.invoke('save-message', {
@@ -511,6 +511,41 @@
       }
     }
 
+    ipcRenderer.on('ai-reason-stream', async (event, renderContent) => {
+      if (!currentAIMessage || !currentAIMessage.isConnected) {
+        console.log('Creating new AI message container');
+        currentAIMessage = await addMessage('', false, false);
+        const contentDiv = currentAIMessage.querySelector('.message-content');
+
+        const streamSpan = document.createElement('span');
+        streamSpan.className = 'think-tag';
+        contentDiv.appendChild(streamSpan);
+
+        const streamSpan2 = document.createElement('span');
+        streamSpan2.className = 'regular-tag';
+        contentDiv.appendChild(streamSpan2);
+      } else {
+        const contentDiv = currentAIMessage.querySelector('.message-content');
+      }
+      if (currentAIMessage) {
+        const streamSpan = currentAIMessage.querySelector('.think-tag');
+        if (streamSpan) {
+          streamSpan.textContent += renderContent;
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+      }
+    });
+
+    ipcRenderer.on('ai-stream', async (event, content) => {
+      if (currentAIMessage) {
+        const streamSpan = currentAIMessage.querySelector('.regular-tag');
+        if (streamSpan) {
+          streamSpan.textContent += content;
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+      }
+    });
+
     // 添加禁用/启用会话控制的函数
     function disableSessionControls() {
       // 禁用新建会话按钮
@@ -534,22 +569,6 @@
       });
     }
 
-    // 保留这个版本的 streaming 监听器
-    ipcRenderer.removeAllListeners('ai-stream'); // 先移除所有现有的监听器
-    ipcRenderer.on('ai-stream', async (event, content) => {
-      console.log('Received stream content:', content);
-      if (!currentAIMessage || !currentAIMessage.isConnected) {
-        console.log('Creating new AI message container');
-        currentAIMessage = await addMessage('', false, false);
-      }
-      if (currentAIMessage) {
-        const contentDiv = currentAIMessage.querySelector('.message-content');
-        if (contentDiv) {
-          contentDiv.textContent += content;
-          chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-      }
-    });
   </script>
 </body>
 

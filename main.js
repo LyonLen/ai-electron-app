@@ -191,7 +191,6 @@ ipcMain.handle('send-ai-message', async (event, { message, sessionId }) => {
     try {
         const messages = sessions.get(sessionId).messages || [];
 
-        let contentAccumulator = '';
 
         // 创建一个新的 Promise 来处理流式响应
         await new Promise((resolve, reject) => {
@@ -201,8 +200,13 @@ ipcMain.handle('send-ai-message', async (event, { message, sessionId }) => {
             // 设置新的监听器
             const contentHandler = ({ content }) => {
                 if (content) {
-                    contentAccumulator += content;
                     event.sender.send('ai-stream', content);
+                }
+            };
+
+            const reasoningHandler = ({ content }) => {
+                if (content) {
+                    event.sender.send('ai-reason-stream', content);
                 }
             };
 
@@ -220,6 +224,8 @@ ipcMain.handle('send-ai-message', async (event, { message, sessionId }) => {
             aiService.once('error', errorHandler);
             // content 事件可能会多次触发，所以使用 on
             aiService.on('content', contentHandler);
+            // content 事件可能会多次触发，所以使用 on
+            aiService.on('reasoning', reasoningHandler);
 
             // 开始发送消息
             aiService.sendMessage(message, messages).catch(reject);

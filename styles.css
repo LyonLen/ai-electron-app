@@ -480,3 +480,12 @@ body {
     overflow-y: overlay;
     /* Uses overlay instead of auto to prevent layout shifts */
 }
+
+.think-tag {
+    color: #666;
+    font-style: italic;
+    background: #f0f0f0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin: 0 2px;
+}

@@ -80,8 +80,6 @@ Summary the conversation, simply response.` }
             const stream = response.body;
             const decoder = new TextDecoder();
             let buffer = '';
-            let startThinking = false;
-            let endThinking = false;
 
             return new Promise((resolve, reject) => {
                 stream.on('data', chunk => {
@@ -99,16 +97,8 @@ Summary the conversation, simply response.` }
                                 const content = json.choices[0]?.delta?.content;
                                 const reasoning = json.choices[0]?.delta?.reasoning_content;
                                 if (reasoning || reasoning === '') {
-                                    if (!startThinking) {
-                                        this.emit('content', { content: '<think>' });
-                                        startThinking = true;
-                                    }
-                                    this.emit('content', { content: reasoning });
-                                } else {
-                                    if (startThinking && !endThinking) {
-                                        this.emit('content', { content: '</think>' });
-                                        endThinking = true;
-                                    }
+                                    this.emit('reasoning', { content: reasoning });
+                                } else if (content || content === '') {
                                     this.emit('content', { content });
                                 }
                             } catch (e) {
