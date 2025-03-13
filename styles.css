@@ -543,3 +543,53 @@ body {
     display: block;
     margin-top: 8px;
 }
+
+.inline-code {
+    background: rgba(52, 53, 65, 0.1);
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.9em;
+}
+
+strong {
+    font-weight: 600;
+}
+
+em {
+    font-style: italic;
+    opacity: 0.85;
+}
+
+.code-block {
+    margin: 8px 0;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #2d2d2d;
+}
+
+.code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    background: #363636;
+    border-bottom: 1px solid #454545;
+}
+
+.code-lang {
+    font-size: 0.85em;
+    color: #969696;
+    text-transform: uppercase;
+}
+
+.copy-btn {
+    padding: 3px 8px;
+    font-size: 0.85em;
+    color: #969696;
+    background: transparent;
+    border: 1px solid #454545;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
