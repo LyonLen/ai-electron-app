@@ -107,43 +107,6 @@
       return messageDiv; // Return the message element for streaming updates
     }
 
-    // Update the handleMessage function in your script
-    async function handleMessage() {
-      if (userInput.value.trim() && !sendButton.classList.contains('loading')) {
-        const message = userInput.value.trim();
-        sendButton.classList.add('loading');
-        currentAIMessage = null;
-
-        try {
-          // Add user message
-          await addMessage(message, true);
-          userInput.value = '';
-
-          // Get AI response
-          await ipcRenderer.invoke('send-ai-message', {
-            message,
-            sessionId: currentSessionId
-          });
-
-          // Save the complete AI message
-          if (currentAIMessage) {
-            const aiContent = currentAIMessage.querySelector('.message-content').textContent;
-            await ipcRenderer.invoke('save-message', {
-              sessionId: currentSessionId,
-              message: aiContent,
-              isUser: false
-            });
-          }
-        } catch (error) {
-          console.error('Error:', error);
-          await addMessage('Sorry, I encountered an error.', false);
-        } finally {
-          userInput.style.height = 'auto';
-          sendButton.classList.remove('loading');
-        }
-      }
-    }
-
     // Update the createSessionItem function
     function createSessionItem(sessionId) {
       const item = document.createElement('div');
