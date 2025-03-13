@@ -15,7 +15,7 @@ class AIService extends EventEmitter {
 
         context = context.slice(-6);
         let conversationsStr = context.map(msg => msg.role + ": " + msg.message).join('\n\n');
-        
+
         const nowTime = new Date();
         const messages = [
             {
@@ -33,7 +33,8 @@ Summary the conversation, simply response.` }
                 model: config.defaultModel,
                 messages,
                 stream: false,
-                maxTokens: 50
+                maxTokens: 10,
+                temperature: 0.7
             })
         });
 

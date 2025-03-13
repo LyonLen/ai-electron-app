@@ -375,10 +375,7 @@
             // 调用AI接口，获取AI标题
             const aiTitle = await ipcRenderer.invoke('get-ai-title', currentSessionId);
             if (aiTitle) {
-              await ipcRenderer.invoke('update-session-title', {
-                sessionId: currentSessionId,
-                title: aiTitle
-              });
+              await ipcRenderer.invoke('update-session-title', currentSessionId, aiTitle);
 
               // 更新UI中的标题
               const sessionItem = document.querySelector(`.session-item[sessionId="${currentSessionId}"]`);

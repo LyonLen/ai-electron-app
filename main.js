@@ -4,6 +4,7 @@ const path = require('path')
 const fs = require('fs').promises;
 const aiService = require('./services/ai-service');
 const { get } = require('http');
+const { title } = require('process');
 
 let mainWindow;
 let sessions = new Map(); // Store chat sessions
@@ -157,9 +158,10 @@ ipcMain.handle('save-message', async (event, { sessionId, message, isUser }) => 
     if (!sessions.has(sessionId)) {
         sessions.set(sessionId, newSessionData());
     }
-    const messages = sessions.get(sessionId).messages;
+    const sessionData = sessions.get(sessionId)
+    const messages = sessionData.messages;
     messages.push({ message, isUser, timestamp: Date.now() });
-    await saveSession(sessionId, { messages: messages, lastEditTime: Date.now() });
+    await saveSession(sessionId, { messages: messages, lastEditTime: Date.now(), title: sessionData.title });
     return messages;
 });
 
@@ -234,19 +236,13 @@ ipcMain.handle('send-ai-message', async (event, { message, sessionId }) => {
 });
 
 // 添加更新会话标题的处理器
-ipcMain.handle('update-session-title', async (event, { sessionId, title }) => {
-    try {
-        if (sessions.has(sessionId)) {
-            const sessionData = sessions.get(sessionId);
-            sessionData.title = title;
-            await saveSession(sessionId, sessionData);
-            return true;
-        }
-        return false;
-    } catch (error) {
-        console.error('Error updating session title:', error);
-        throw error;
-    }
+ipcMain.handle('update-session-title', async (event, sessionId, title) => {
+    const sessionData = sessions.get(sessionId);
+    sessionData.title = title;
+    sessionData.lastEditTime = Date.now();
+    sessions.set(sessionId, sessionData);
+    await saveSession(sessionId, sessionData);
+    return true;
 });
 
 ipcMain.handle('get-session-title', async (event, sessionId) => {
