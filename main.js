@@ -4,12 +4,6 @@ const path = require('path')
 const fs = require('fs').promises;
 const aiService = require('./services/ai-service');
 
-// Verify env variables are loaded
-console.log('Checking API Keys:', {
-    openai: process.env.OPENAI_API_KEY ? 'Set' : 'Not set',
-    anthropic: process.env.ANTHROPIC_API_KEY ? 'Set' : 'Not set'
-});
-
 let mainWindow;
 let sessions = new Map(); // Store chat sessions
 
@@ -103,9 +97,6 @@ ipcMain.on('close-window', () => {
 
 // 在其他 IPC handlers 附近添加
 ipcMain.on('toggle-maximize-window', () => {
-    console.log('Received toggle-maximize-window event');
-    console.log('Window is maximized:', mainWindow.isMaximized());
-
     if (mainWindow.isMaximized()) {
         mainWindow.unmaximize();
     } else {
@@ -131,9 +122,7 @@ ipcMain.handle('create-session', async (event, sessionId) => {
 });
 
 ipcMain.handle('get-session-messages', async (event, sessionId) => {
-    console.log('Getting messages for session:', sessionId);
     const messages = sessions.get(sessionId) || [];
-    console.log('Messages:', messages);
     return messages;
 });
 
@@ -149,14 +138,12 @@ ipcMain.handle('save-message', async (event, { sessionId, message, isUser }) => 
 
 // Get all sessions
 ipcMain.handle('get-all-sessions', async () => {
-    console.log('Getting all sessions:', Array.from(sessions.keys()));
     return Array.from(sessions.keys());
 });
 
 // Add new IPC handler for AI messages
 ipcMain.handle('send-ai-message', async (event, { message, sessionId }) => {
     try {
-        console.log('Received message:', message);
         const messages = sessions.get(sessionId) || [];
 
         let contentAccumulator = '';
@@ -175,7 +162,6 @@ ipcMain.handle('send-ai-message', async (event, { message, sessionId }) => {
             };
 
             const completeHandler = () => {
-                console.log('Stream completed, total content:', contentAccumulator);
                 resolve();
             };
 

@@ -27,7 +27,7 @@
   <div id="chat-container"></div>
   <div id="input-container">
     <button id="avatar-button" class="avatar-button">
-      <img src="assets/avatars/default-avatar.png" alt="User Avatar" id="current-avatar">
+      <img src="assets/avatars/avatar-1.png" alt="User Avatar" id="current-avatar">
     </button>
     <textarea id="user-input" placeholder="Ask me anything..." rows="1"></textarea>
     <button id="send-button" class="send-button">
@@ -42,26 +42,36 @@
     <img src="assets/avatars/avatar-4.png" class="avatar-option" alt="Avatar 4">
   </div>
   <script>
-    const chatContainer = document.getElementById('chat-container');
-    const userInput = document.getElementById('user-input');
+    const { ipcRenderer } = require('electron');
+
+    // 最小化、最大化、关闭按钮
     const minBtn = document.getElementById('min-btn');
     const maxBtn = document.getElementById('max-btn');
     const closeBtn = document.getElementById('close-btn');
+
+    // 聊天容器
+    const chatContainer = document.getElementById('chat-container');
+
+    // 用户输入框、发送按钮
+    const userInput = document.getElementById('user-input');
     const sendButton = document.getElementById('send-button');
-    const { ipcRenderer } = require('electron');
+
+    // 头像按钮、头像面板、当前头像
     const avatarButton = document.getElementById('avatar-button');
     const avatarPanel = document.getElementById('avatar-panel');
     const currentAvatar = document.getElementById('current-avatar');
-    const botAvatar = 'assets/avatars/bot-avatar.png'; // Add a bot avatar image
-    let currentSessionId = Date.now().toString(); // Unique session ID
+    const botAvatar = 'assets/avatars/bot-avatar.png';
 
-    // Add these constants with the other ones
+    // 当前会话ID
+    let currentSessionId = Date.now().toString();
+
+    // 侧边栏、折叠按钮、会话列表、新会话按钮
     const sidebar = document.getElementById('sidebar');
     const collapseBtn = document.getElementById('collapse-btn');
     const sessionsList = document.getElementById('sessions-list');
     const newSessionBtn = document.getElementById('new-session-button');
 
-    // Initialize session
+    // 初始化会话
     async function initSession() {
       await ipcRenderer.invoke('create-session', currentSessionId);
       const messages = await ipcRenderer.invoke('get-session-messages', currentSessionId);
@@ -162,45 +172,6 @@
         }
       };
       return item;
-    }
-
-    // Update the handleMessage function
-    async function handleMessage() {
-      if (userInput.value.trim() && !sendButton.classList.contains('loading')) {
-        const message = userInput.value.trim();
-        sendButton.classList.add('loading');
-        currentAIMessage = null;
-
-        try {
-          // Add and save user message
-          await addMessage(message, true, true);
-          userInput.value = '';
-
-          // Get AI response
-          await ipcRenderer.invoke('send-ai-message', {
-            message,
-            sessionId: currentSessionId
-          });
-
-          // Save the complete AI message if streaming completed
-          if (currentAIMessage) {
-            const aiContent = currentAIMessage.querySelector('.message-content').textContent;
-            if (aiContent) {
-              await ipcRenderer.invoke('save-message', {
-                sessionId: currentSessionId,
-                message: aiContent,
-                isUser: false
-              });
-            }
-          }
-        } catch (error) {
-          console.error('Error:', error);
-          await addMessage('Sorry, I encountered an error.', false, true);
-        } finally {
-          userInput.style.height = 'auto';
-          sendButton.classList.remove('loading');
-        }
-      }
     }
 
     userInput.addEventListener('keydown', (e) => {
@@ -426,66 +397,6 @@
       if (contentDiv) {
         contentDiv.textContent += content;
         chatContainer.scrollTop = chatContainer.scrollHeight;
-      }
-    });
-
-    // Update handleMessage function
-    async function handleMessage() {
-      if (userInput.value.trim() && !sendButton.classList.contains('loading')) {
-        const message = userInput.value.trim();
-        console.log('Sending message:', message);
-        sendButton.classList.add('loading');
-        currentAIMessage = null; // 重置 currentAIMessage
-
-        try {
-          // Add user message
-          await addMessage(message, true);
-          userInput.value = '';
-          console.log('User message added to chat');
-
-          // Get AI response
-          console.log('Requesting AI response...');
-          await ipcRenderer.invoke('send-ai-message', {
-            message,
-            sessionId: currentSessionId
-          });
-
-          // 保存完整的 AI 消息
-          if (currentAIMessage && currentAIMessage.isConnected) {
-            const aiContent = currentAIMessage.querySelector('.message-content').textContent;
-            if (aiContent) {
-              await ipcRenderer.invoke('save-message', {
-                sessionId: currentSessionId,
-                message: aiContent,
-                isUser: false
-              });
-            }
-            currentAIMessage = null; // 消息完成后重置
-          }
-        } catch (error) {
-          console.error('Error in handleMessage:', error);
-          await addMessage('Sorry, I encountered an error.', false);
-        } finally {
-          userInput.style.height = 'auto';
-          sendButton.classList.remove('loading');
-          currentAIMessage = null; // 确保在任何情况下都重置
-        }
-      }
-    }
-
-    // Update streaming listener
-    ipcRenderer.on('ai-stream', async (event, content) => {
-      console.log('Received stream content:', content);
-      if (!currentAIMessage) {
-        console.log('Creating new AI message container');
-        currentAIMessage = await addMessage('', false, false); // 保存返回的 div
-      }
-      if (currentAIMessage) {
-        const contentDiv = currentAIMessage.querySelector('.message-content');
-        if (contentDiv) {
-          contentDiv.textContent += content;
-          chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
       }
     });
 
