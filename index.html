@@ -287,7 +287,7 @@
       try {
         await ipcRenderer.invoke('create-session', currentSessionId);
         const sessionItem = createSessionItem(currentSessionId);
-        // Insert at the beginning of the list instead of appending
+        // https://developer.mozilla.org/zh-CN/docs/Web/API/Node/insertBefore
         sessionsList.insertBefore(sessionItem, sessionsList.firstChild);
         sessionItem.classList.add('active');
       } catch (error) {
@@ -385,16 +385,27 @@
           if (currentAIMessage && currentAIMessage.isConnected) {
             const aiContent = currentAIMessage.querySelector('.message-content').textContent;
             if (aiContent) {
-              await ipcRenderer.invoke('save-message', {
-                sessionId: currentSessionId,
-                message: aiContent,
-                isUser: false
-              });
+              await Promise.all([
+                ipcRenderer.invoke('save-message', {
+                  sessionId: currentSessionId,
+                  message: aiContent,
+                  isUser: false
+                })
+              ]);
+
+              // 把当前会话置顶
+              const sessionItem = sessionsList.querySelector('.session-item.active');
+              if (sessionItem) {
+                // https://developer.mozilla.org/zh-CN/docs/Web/API/Node/insertBefore
+                // 如果sessionItem已经在sessionsList中，则将其移动到sessionsList的第一个位置
+                sessionsList.insertBefore(sessionItem, sessionsList.firstChild);
+              }
             }
           }
         } catch (error) {
           console.error('Error in handleMessage:', error);
           await addMessage('Sorry, I encountered an error.', false);
+          alert('Error sending message.\nError: ' + error.message + "\n" + error.stack);
         } finally {
           userInput.style.height = 'auto';
           sendButton.classList.remove('loading');
