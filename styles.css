@@ -489,3 +489,57 @@ body {
     border-radius: 4px;
     margin: 0 2px;
 }
+
+.thinking-section {
+    background: rgba(52, 53, 65, 0.1);
+    border-radius: 8px;
+    margin: 4px 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.thinking-header {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    user-select: none;
+    font-size: smaller;
+    font-style: italic;
+}
+
+.thinking-header:hover {
+    background: rgba(52, 53, 65, 0.15);
+}
+
+.thinking-toggle {
+    margin-right: 8px;
+    transition: transform 0.3s ease;
+    font-size: xx-small;
+}
+
+.thinking-title {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.thinking-content {
+    padding: 0 12px 8px 32px;
+    color: #666;
+    font-style: italic;
+    font-size: 0.9em;
+    line-height: 1.5;
+}
+
+.thinking-section.collapsed .thinking-content {
+    display: none;
+}
+
+.thinking-section.collapsed .thinking-toggle {
+    transform: rotate(-90deg);
+}
+
+.regular-tag {
+    display: block;
+    margin-top: 8px;
+}

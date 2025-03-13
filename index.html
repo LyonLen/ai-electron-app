@@ -511,36 +511,58 @@
       }
     }
 
+    // Replace the existing ai-reason-stream handler
     ipcRenderer.on('ai-reason-stream', async (event, renderContent) => {
       if (!currentAIMessage || !currentAIMessage.isConnected) {
         console.log('Creating new AI message container');
         currentAIMessage = await addMessage('', false, false);
         const contentDiv = currentAIMessage.querySelector('.message-content');
 
-        const streamSpan = document.createElement('span');
-        streamSpan.className = 'think-tag';
-        contentDiv.appendChild(streamSpan);
+        // Create thinking section
+        const thinkingSection = document.createElement('div');
+        thinkingSection.className = 'thinking-section';
 
-        const streamSpan2 = document.createElement('span');
-        streamSpan2.className = 'regular-tag';
-        contentDiv.appendChild(streamSpan2);
-      } else {
-        const contentDiv = currentAIMessage.querySelector('.message-content');
+        // Create header
+        const thinkingHeader = document.createElement('div');
+        thinkingHeader.className = 'thinking-header';
+        thinkingHeader.innerHTML = `
+      <span class="thinking-toggle">▼</span>
+      <span class="thinking-title">Thinking Process</span>
+    `;
+        thinkingHeader.onclick = () => {
+          thinkingSection.classList.toggle('collapsed');
+        };
+
+        // Create content
+        const thinkingContent = document.createElement('div');
+        thinkingContent.className = 'thinking-content';
+
+        // Create regular content
+        const regularContent = document.createElement('div');
+        regularContent.className = 'regular-tag';
+
+        // Assemble the structure
+        thinkingSection.appendChild(thinkingHeader);
+        thinkingSection.appendChild(thinkingContent);
+        contentDiv.appendChild(thinkingSection);
+        contentDiv.appendChild(regularContent);
       }
+
       if (currentAIMessage) {
-        const streamSpan = currentAIMessage.querySelector('.think-tag');
-        if (streamSpan) {
-          streamSpan.textContent += renderContent;
+        const thinkingContent = currentAIMessage.querySelector('.thinking-content');
+        if (thinkingContent) {
+          thinkingContent.textContent += renderContent;
           chatContainer.scrollTop = chatContainer.scrollHeight;
         }
       }
     });
 
+    // Update the ai-stream handler
     ipcRenderer.on('ai-stream', async (event, content) => {
       if (currentAIMessage) {
-        const streamSpan = currentAIMessage.querySelector('.regular-tag');
-        if (streamSpan) {
-          streamSpan.textContent += content;
+        const regularContent = currentAIMessage.querySelector('.regular-tag');
+        if (regularContent) {
+          regularContent.textContent += content;
           chatContainer.scrollTop = chatContainer.scrollHeight;
         }
       }
