@@ -25,6 +25,46 @@ body {
     align-items: flex-start;
     gap: 10px;
     margin: 15px 0;
+    position: relative;
+    /* 移除 padding-bottom，我们将使用 margin 来处理间距 */
+}
+
+.message-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-width: fit-content;
+    margin-bottom: 16px;
+    /* 为时间戳提供空间 */
+}
+
+.message-time {
+    font-size: 11px;
+    color: #666;
+    opacity: 0.8;
+    position: absolute;
+    bottom: 0;
+    white-space: nowrap;
+    /* 调整位置，使其紧贴气泡 */
+    transform: translateY(14px);
+}
+
+/* AI消息的时间戳 */
+.ai-message .message-time {
+    left: 0;
+    margin-left: 38px;
+    /* avatar宽度(30px) + gap(8px) */
+}
+
+/* 用户消息的时间戳 */
+.user-message .message-time {
+    right: 0;
+    margin-right: 38px;
+}
+
+/* 调整消息间距 */
+.message+.message {
+    margin-top: 25px;
+    /* 增加消息之间的间距，为时间戳留出空间 */
 }
 
 .user-message {
@@ -37,15 +77,22 @@ body {
 }
 
 .message-content {
-    flex-grow: 0;
     padding: 10px 15px;
     border-radius: 5px;
     max-width: 80%;
     width: fit-content;
-    min-width: 40px;
     word-break: break-word;
     white-space: pre-wrap;
-    margin: 0 5px;
+    margin: 0;
+    min-width: max-content;
+    /* 确保内容不会比时间戳窄 */
+}
+
+/* 根据时间戳长度自动调整气泡最小宽度 */
+.message-content-wrapper {
+    min-width: fit-content;
+    display: flex;
+    flex-direction: column;
 }
 
 .user-message .message-content {

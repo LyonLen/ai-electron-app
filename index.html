@@ -95,8 +95,23 @@
       content.className = 'message-content';
       content.textContent = message;
 
+      // 添加时间显示
+      const timeDiv = document.createElement('div');
+      timeDiv.className = 'message-time';
+      const now = new Date();
+      timeDiv.textContent = now.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      }).replace(/\//g, '-');
+
       messageDiv.appendChild(avatar);
       messageDiv.appendChild(content);
+      messageDiv.appendChild(timeDiv);
       chatContainer.appendChild(messageDiv);
       chatContainer.scrollTop = chatContainer.scrollHeight;
 
@@ -104,10 +119,11 @@
         await ipcRenderer.invoke('save-message', {
           sessionId: currentSessionId,
           message,
-          isUser
+          isUser,
+          timestamp: now.getTime() // 保存时间戳
         });
       }
-      return messageDiv; // Return the message element for streaming updates
+      return messageDiv;
     }
 
     userInput.addEventListener('keydown', (e) => {
@@ -343,7 +359,22 @@
           chatContainer.innerHTML = '';
           if (Array.isArray(messages)) {
             for (const msg of messages) {
-              await addMessage(msg.message, msg.isUser, false);
+              const messageDiv = await addMessage(msg.message, msg.isUser, false);
+              if (msg.timestamp) {
+                const timeDiv = messageDiv.querySelector('.message-time');
+                if (timeDiv) {
+                  const msgDate = new Date(msg.timestamp);
+                  timeDiv.textContent = msgDate.toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                  }).replace(/\//g, '-');
+                }
+              }
             }
           }
         } else {
