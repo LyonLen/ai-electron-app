@@ -360,14 +360,28 @@ body {
 }
 
 .collapse-button {
-    background: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
     border: none;
-    color: #fff;
+    background: transparent;
     cursor: pointer;
-    padding: 5px;
-    transition: transform 0.3s ease;
+    padding: 0;
+    color: #666;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 14px;
+    transition: all 0.2s;
 }
 
+.collapse-button:hover {
+    color: #333;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+/* 修改折叠状态的箭头方向 */
 .sidebar.collapsed .collapse-button {
     transform: rotate(180deg);
 }
