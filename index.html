@@ -319,6 +319,8 @@
       chatContainer.innerHTML = '';
       currentSessionId = Date.now().toString();
 
+      await addMessage('你好！我能帮你做点什么？😃', false);
+
       try {
         await ipcRenderer.invoke('create-session', currentSessionId);
         const sessionItem = createSessionItem(currentSessionId);
