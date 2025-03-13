@@ -232,3 +232,33 @@ ipcMain.handle('send-ai-message', async (event, { message, sessionId }) => {
         aiService.removeAllListeners();
     }
 });
+
+// 添加更新会话标题的处理器
+ipcMain.handle('update-session-title', async (event, { sessionId, title }) => {
+    try {
+        if (sessions.has(sessionId)) {
+            const sessionData = sessions.get(sessionId);
+            sessionData.title = title;
+            await saveSession(sessionId, sessionData);
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Error updating session title:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('get-session-title', async (event, sessionId) => {
+    if (sessions.has(sessionId)) {
+        return sessions.get(sessionId).title || '';
+    }
+    return '';
+});
+
+ipcMain.handle('get-ai-title', async (event, currentSessionId) => {
+    const filePath = path.join(sessionsPath, `${currentSessionId}.json`);
+    const data = await fs.readFile(filePath, 'utf8');
+    const sessionData = JSON.parse(data);
+    return await Promise.resolve(aiService.getTitle(sessionData.messages));
+});

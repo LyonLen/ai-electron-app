@@ -217,13 +217,14 @@
 
     // Update session management
     // Update the createSessionItem function
-    function createSessionItem(sessionId) {
+    function createSessionItem(sessionId, title = '') {
       const item = document.createElement('div');
       item.setAttribute('sessionId', sessionId);
       item.className = 'session-item';
       const titleSpan = document.createElement('span');
       titleSpan.className = 'session-title';
-      titleSpan.textContent = `Chat ${new Date(parseInt(sessionId)).toLocaleTimeString()}`;
+      // 使用会话数据中的标题，如果没有则使用默认标题
+      titleSpan.textContent = title || `Chat ${new Date(parseInt(sessionId)).toLocaleTimeString()}`;
 
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'session-delete-btn';
@@ -306,7 +307,8 @@
         const sessionsWithTime = await Promise.all(
           sessionIds.map(async (id) => ({
             id,
-            lastEditTime: await ipcRenderer.invoke('get-session-lastedittime', id)
+            lastEditTime: await ipcRenderer.invoke('get-session-lastedittime', id),
+            title: await ipcRenderer.invoke('get-session-title', id),
           }))
         );
 
@@ -314,8 +316,8 @@
         sessionsWithTime.sort((a, b) => b.lastEditTime - a.lastEditTime);
 
         // 按排序后的顺序创建会话项
-        for (const { id } of sessionsWithTime) {
-          const sessionItem = createSessionItem(id);
+        for (const { id, title } of sessionsWithTime) {
+          const sessionItem = createSessionItem(id, title);
           sessionsList.appendChild(sessionItem);
         }
 
@@ -350,6 +352,8 @@
     // Add to your script section
     let currentAIMessage = null;
 
+    let messageCounter = 0;
+
     // 保留这个最终版本的 handleMessage
     async function handleMessage() {
       if (userInput.value.trim() && !sendButton.classList.contains('loading')) {
@@ -359,10 +363,49 @@
         currentAIMessage = null; // Reset currentAIMessage
 
         try {
+          // 增加消息计数
+          messageCounter++;
+
           // Add user message
           await addMessage(message, true);
           userInput.value = '';
           console.log('User message added to chat');
+
+          // 如果是前3次对话，使用用户消息更新标题
+          if (messageCounter <= 0) {
+            const title = message.length > 20 ? message.substring(0, 20) + '...' : message;
+            await ipcRenderer.invoke('update-session-title', {
+              sessionId: currentSessionId,
+              title: title
+            });
+
+            // 更新UI中的标题
+            const sessionItem = document.querySelector(`.session-item[sessionId="${currentSessionId}"]`);
+            if (sessionItem) {
+              const titleSpan = sessionItem.querySelector('.session-title');
+              if (titleSpan) {
+                titleSpan.textContent = title;
+              }
+            }
+          } else if (messageCounter > 0 && messageCounter <= 6) {
+            // 调用AI接口，获取AI标题
+            const aiTitle = await ipcRenderer.invoke('get-ai-title', currentSessionId);
+            if (aiTitle) {
+              await ipcRenderer.invoke('update-session-title', {
+                sessionId: currentSessionId,
+                title: aiTitle
+              });
+
+              // 更新UI中的标题
+              const sessionItem = document.querySelector(`.session-item[sessionId="${currentSessionId}"]`);
+              if (sessionItem) {
+                const titleSpan = sessionItem.querySelector('.session-title');
+                if (titleSpan) {
+                  titleSpan.textContent = aiTitle;
+                }
+              }
+            }
+          }
 
           // Get AI response
           console.log('Requesting AI response...');

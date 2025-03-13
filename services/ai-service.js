@@ -9,6 +9,43 @@ class AIService extends EventEmitter {
         this.pendingResponse = null;
     }
 
+    async getTitle(context) {
+        // 把消息传给openai，获取标题
+        const config = this.configs[activeModel];
+
+        context = context.slice(-6);
+        let conversationsStr = context.map(msg => msg.role + ": " + msg.message).join('\n\n');
+
+        const messages = [
+            {
+                role: 'system', content: `<conversation>${conversationsStr}</conversation>\n\n
+Summary the conversation, simply response.` }
+        ];
+
+        const response = await fetch(`${config.apiBase}/chat/completions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKeys[activeModel]}`
+            },
+            body: JSON.stringify({
+                model: config.defaultModel,
+                messages,
+                stream: false,
+                maxTokens: 50
+            })
+        });
+
+        if (!response.ok) {
+            const text = response.statusText;
+            throw new Error(`API request failed with status ${response.status} ${text}`);
+        }
+
+        const json = await response.json();
+        console.log('test  ', json.choices[0]?.message?.content || '');
+        return json.choices[0]?.message?.content || '';
+    }
+
     async sendMessage(message, context = []) {
         try {
             const config = this.configs[activeModel];
