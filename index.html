@@ -93,12 +93,13 @@
 
       const content = document.createElement('div');
       content.className = 'message-content';
-      content.textContent = message;
+      content.textContent = message.message || message;
 
       // 添加时间显示
       const timeDiv = document.createElement('div');
       timeDiv.className = 'message-time';
-      const now = new Date();
+      console.log('Message timestamp:', message.timestamp);
+      const now = message.timestamp ? new Date(message.timestamp) : new Date();
       timeDiv.textContent = now.toLocaleString('zh-CN', {
         year: 'numeric',
         month: '2-digit',
@@ -277,9 +278,10 @@
 
         try {
           const messages = await ipcRenderer.invoke('get-session-messages', sessionId);
+          console.log('Loading message:', messages);
           if (Array.isArray(messages)) {
             messages.forEach(msg => {
-              addMessage(msg.message, msg.isUser, false); // Add false to skip saving
+              addMessage(msg, msg.isUser, false); // Add false to skip saving
             });
           }
         } catch (error) {
