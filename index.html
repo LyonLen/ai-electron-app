@@ -258,10 +258,18 @@
 
       // Delete button click handler
       deleteBtn.onclick = async (e) => {
+        e.preventDefault(); // Prevent any default behavior
         e.stopPropagation(); // Prevent session switching when clicking delete
-        if (confirm('Are you sure you want to delete this chat?')) {
+
+        try {
           await deleteSession(sessionId);
+          // Ensure input is enabled and focused after deletion
+          userInput.disabled = false;
+          userInput.focus();
+        } catch (error) {
+          console.error('Error in delete handler:', error);
         }
+
       };
 
       item.appendChild(titleSpan);
@@ -489,27 +497,30 @@
       try {
         await ipcRenderer.invoke('delete-session', sessionId);
 
-        // Remove session from UI according to ID
+        // Remove session from UI
         const sessionItem = sessionsList.querySelector(`.session-item[sessionId="${sessionId}"]`);
         if (sessionItem) {
           sessionItem.remove();
-          console.log('Session deleted:', sessionId);
         }
-        console.log('Session deleted:', sessionItem);
 
-        // If we deleted the current session, switch a new one
+        // If we deleted the current session
         if (sessionId === currentSessionId) {
-          // switch the first session
+          // Get next available session
           const firstSessionItem = sessionsList.firstChild;
           if (firstSessionItem) {
+            // Trigger click event programmatically
             firstSessionItem.click();
+          } else {
+            // If no sessions left, create a new one
+            await createNewSession();
           }
         }
 
-        // If no sessions left, create a new one
-        if (sessionsList.children.length === 0) {
-          await createNewSession();
-        }
+        // Reset conversation state
+        isInConversation = false;
+        userInput.disabled = false;
+        userInput.focus();
+
       } catch (error) {
         console.error('Error deleting session:', error);
         alert('Error deleting session: ' + error.message);
