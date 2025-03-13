@@ -71,6 +71,9 @@
     const sessionsList = document.getElementById('sessions-list');
     const newSessionBtn = document.getElementById('new-session-button');
 
+    // 添加一个状态变量来跟踪是否在对话中
+    let isInConversation = false;
+
     // 初始化会话
     async function initSession() {
       await ipcRenderer.invoke('create-session', currentSessionId);
@@ -243,6 +246,10 @@
       item.appendChild(deleteBtn);
 
       item.onclick = async () => {
+        if (isInConversation) {
+          return; // 如果正在对话中，直接返回
+        }
+
         if (currentSessionId === sessionId) return; // Skip if same session
 
         document.querySelectorAll('.session-item').forEach(i => i.classList.remove('active'));
@@ -287,7 +294,11 @@
     }
 
     // Replace the existing new session button with this
-    document.getElementById('new-session-btn').addEventListener('click', createNewSession);
+    document.getElementById('new-session-btn').addEventListener('click', () => {
+      if (!isInConversation) {
+        createNewSession();
+      }
+    });
 
     // Add to your script section after constants
 
@@ -362,6 +373,11 @@
         sendButton.classList.add('loading');
         currentAIMessage = null; // Reset currentAIMessage
 
+        // 设置对话状态为true
+        isInConversation = true;
+        // 禁用新建和切换会话按钮
+        disableSessionControls();
+
         try {
           // 增加消息计数
           messageCounter++;
@@ -421,6 +437,9 @@
           await addMessage('Sorry, I encountered an error.', false);
           alert('Error sending message.\nError: ' + error.message + "\n" + error.stack);
         } finally {
+          // 恢复会话控制
+          isInConversation = false;
+          enableSessionControls();
           userInput.style.height = 'auto';
           sendButton.classList.remove('loading');
           currentAIMessage = null; // Ensure reset in all cases
@@ -457,6 +476,29 @@
         console.error('Error deleting session:', error);
         alert('Error deleting session: ' + error.message);
       }
+    }
+
+    // 添加禁用/启用会话控制的函数
+    function disableSessionControls() {
+      // 禁用新建会话按钮
+      document.getElementById('new-session-btn').disabled = true;
+
+      // 禁用所有会话项的点击事件
+      document.querySelectorAll('.session-item').forEach(item => {
+        item.style.pointerEvents = 'none';
+        item.style.opacity = '0.5';
+      });
+    }
+
+    function enableSessionControls() {
+      // 启用新建会话按钮
+      document.getElementById('new-session-btn').disabled = false;
+
+      // 启用所有会话项的点击事件
+      document.querySelectorAll('.session-item').forEach(item => {
+        item.style.pointerEvents = 'auto';
+        item.style.opacity = '1';
+      });
     }
 
     // 保留这个版本的 streaming 监听器
