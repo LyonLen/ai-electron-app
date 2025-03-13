@@ -325,3 +325,50 @@ body {
 .new-session-button:hover {
     background: #444;
 }
+
+/* 聊天容器和会话列表的滚动条样式 */
+#chat-container,
+#sessions-list {
+    /* Hide scrollbar by default, show on hover */
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+
+    /* For Webkit browsers (Chrome, Safari, etc) */
+    &::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+        transition: background-color 0.2s;
+    }
+
+    /* Show scrollbar on hover */
+    &:hover {
+        scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+
+        &::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+    }
+
+    /* Active scrollbar style */
+    &::-webkit-scrollbar-thumb:active {
+        background-color: rgba(255, 255, 255, 0.4);
+    }
+}
+
+/* Ensure smooth scrolling */
+#chat-container,
+#sessions-list {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+    overflow-y: overlay;
+    /* Uses overlay instead of auto to prevent layout shifts */
+}
