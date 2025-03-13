@@ -312,20 +312,32 @@
         // Clear existing sessions
         sessionsList.innerHTML = '';
 
-        for (const id of sessionIds) {
+        // 获取所有会话的最后编辑时间
+        const sessionsWithTime = await Promise.all(
+          sessionIds.map(async (id) => ({
+            id,
+            lastEditTime: await ipcRenderer.invoke('get-session-lastedittime', id)
+          }))
+        );
+
+        // 按最后编辑时间排序
+        sessionsWithTime.sort((a, b) => b.lastEditTime - a.lastEditTime);
+
+        // 按排序后的顺序创建会话项
+        for (const { id } of sessionsWithTime) {
           const sessionItem = createSessionItem(id);
           sessionsList.appendChild(sessionItem);
         }
 
-        if (sessionIds.length > 0) {
-          // Load most recent session
-          currentSessionId = sessionIds[0];
+        if (sessionsWithTime.length > 0) {
+          // 使用排序后的第一个会话作为当前会话
+          currentSessionId = sessionsWithTime[0].id;
           const firstSessionItem = sessionsList.firstChild;
           firstSessionItem.classList.add('active');
 
           // Load messages for first session
           const messages = await ipcRenderer.invoke('get-session-messages', currentSessionId);
-          chatContainer.innerHTML = ''; // Clear chat container
+          chatContainer.innerHTML = '';
           if (Array.isArray(messages)) {
             for (const msg of messages) {
               await addMessage(msg.message, msg.isUser, false);

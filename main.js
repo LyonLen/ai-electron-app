@@ -29,7 +29,7 @@ async function loadSessions() {
                 const sessionId = file.replace('.json', '');
                 const data = await fs.readFile(path.join(sessionsPath, file), 'utf8');
                 const sessionData = JSON.parse(data);
-                sessions.set(sessionId, sessionData || getSessionData());
+                sessions.set(sessionId, sessionData || newSessionData());
             }
         }
     } catch (error) {
@@ -114,14 +114,14 @@ ipcMain.handle('is-maximized', () => {
     return mainWindow.isMaximized();
 });
 
-function getSessionData() {
+function newSessionData() {
     return { messages: [], lastEditTime: Date.now() };
 }
 
 // Update IPC handlers
 ipcMain.handle('create-session', async (event, sessionId) => {
     if (!sessions.has(sessionId)) {
-        const newData = getSessionData()
+        const newData = newSessionData()
         sessions.set(sessionId, newData);
         await saveSession(sessionId, newData);
     }
@@ -144,9 +144,13 @@ ipcMain.handle('get-session-messages', async (event, sessionId) => {
     return messages;
 });
 
+ipcMain.handle('get-session-lastedittime', async (event, sessionId) => {
+    return sessions.get(sessionId).lastEditTime || 0;
+});
+
 ipcMain.handle('save-message', async (event, { sessionId, message, isUser }) => {
     if (!sessions.has(sessionId)) {
-        sessions.set(sessionId, getSessionData());
+        sessions.set(sessionId, newSessionData());
     }
     const messages = sessions.get(sessionId).messages;
     messages.push({ message, isUser, timestamp: Date.now() });
