@@ -77,7 +77,7 @@ body {
 }
 
 .message-content {
-    padding: 10px 15px;
+    padding: 8px 16px;
     border-radius: 5px;
     max-width: 80%;
     width: fit-content;
@@ -85,6 +85,8 @@ body {
     min-width: 40px;
     white-space: pre-wrap;
     margin: 0 5px;
+    overflow: visible;
+    max-width: 85%;
 }
 
 /* 根据时间戳长度自动调整气泡最小宽度 */
@@ -542,6 +544,8 @@ body {
 .regular-tag {
     display: block;
     margin-top: 8px;
+    margin: 0;
+    padding: 0;
 }
 
 .inline-code {
@@ -562,34 +566,66 @@ em {
 }
 
 .code-block {
-    margin: 8px 0;
-    border-radius: 6px;
+    margin: 8px -16px;
+    background: #1e1e1e;
     overflow: hidden;
-    background: #2d2d2d;
+    border-top: 1px solid #363636;
+    border-bottom: 1px solid #363636;
+    width: max-content;
+    max-width: calc(100% + 30px);
+    /* Prevent overflow */
+    font-family: 'Consolas', 'Monaco', monospace;
+    position: relative;
 }
 
 .code-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 12px;
-    background: #363636;
-    border-bottom: 1px solid #454545;
+    padding: 6px 16px;
+    background: #252526;
+    border-bottom: 1px solid #363636;
+    min-width: calc(100% - 24px);
+    /* Account for padding */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 .code-lang {
-    font-size: 0.85em;
-    color: #969696;
-    text-transform: uppercase;
+    font-size: 12px;
+    color: #7a7a7a;
+    text-transform: lowercase;
 }
 
 .copy-btn {
     padding: 3px 8px;
-    font-size: 0.85em;
-    color: #969696;
+    font-size: 12px;
+    color: #cccccc;
     background: transparent;
-    border: 1px solid #454545;
-    border-radius: 4px;
+    border: 1px solid #404040;
+    border-radius: 3px;
     cursor: pointer;
     transition: all 0.2s;
+    margin-left: 12px;
+}
+
+.copy-btn:hover {
+    background: #2d2d2d;
+    border-color: #505050;
+}
+
+.copy-btn:active {
+    background: #333333;
+}
+
+pre {
+    margin: 0;
+    padding: 12px 16px;
+    overflow-x: auto;
+}
+
+code {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: pre;
 }
