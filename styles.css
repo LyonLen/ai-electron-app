@@ -82,10 +82,9 @@ body {
     max-width: 80%;
     width: fit-content;
     word-break: break-word;
+    min-width: 40px;
     white-space: pre-wrap;
-    margin: 0;
-    min-width: max-content;
-    /* 确保内容不会比时间戳窄 */
+    margin: 0 5px;
 }
 
 /* 根据时间戳长度自动调整气泡最小宽度 */
