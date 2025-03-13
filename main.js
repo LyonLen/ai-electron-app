@@ -159,8 +159,6 @@ ipcMain.handle('send-ai-message', async (event, { message, sessionId }) => {
         console.log('Received message:', message);
         const messages = sessions.get(sessionId) || [];
 
-        event.sender.send('ai-thinking', true);
-
         let contentAccumulator = '';
 
         // 创建一个新的 Promise 来处理流式响应
@@ -203,6 +201,5 @@ ipcMain.handle('send-ai-message', async (event, { message, sessionId }) => {
     } finally {
         // 确保清理所有监听器
         aiService.removeAllListeners();
-        event.sender.send('ai-thinking', false);
     }
 });

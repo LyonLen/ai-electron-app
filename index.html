@@ -457,7 +457,6 @@
         } finally {
           userInput.style.height = 'auto';
           sendButton.classList.remove('loading');
-          removeThinkingIndicator();
         }
       }
     }
@@ -527,7 +526,6 @@
         } finally {
           userInput.style.height = 'auto';
           sendButton.classList.remove('loading');
-          removeThinkingIndicator();
         }
       }
     }
@@ -758,55 +756,6 @@
       }
     });
 
-    // Listen for thinking state
-    ipcRenderer.on('ai-thinking', (event, isThinking) => {
-      if (isThinking) {
-        sendButton.classList.add('thinking');
-        // Add thinking indicator
-        addThinkingIndicator();
-      } else {
-        sendButton.classList.remove('thinking');
-        // Remove thinking indicator
-        removeThinkingIndicator();
-      }
-    });
-
-    // Add thinking indicator styles
-    const style = document.createElement('style');
-    style.textContent = `
-      .thinking-indicator {
-        padding: 10px;
-        color: #888;
-        font-style: italic;
-      }
-      
-      .send-button.thinking {
-        animation: pulse 1.5s infinite;
-      }
-      
-      @keyframes pulse {
-        0% { opacity: 1; }
-        50% { opacity: 0.5; }
-        100% { opacity: 1; }
-      }
-    `;
-    document.head.appendChild(style);
-
-    function addThinkingIndicator() {
-      const indicator = document.createElement('div');
-      indicator.className = 'thinking-indicator';
-      indicator.textContent = '思考中...';
-      chatContainer.appendChild(indicator);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    function removeThinkingIndicator() {
-      const indicator = document.querySelector('.thinking-indicator');
-      if (indicator) {
-        indicator.remove();
-      }
-    }
-
     // Update handleMessage function
     async function handleMessage() {
       if (userInput.value.trim() && !sendButton.classList.contains('loading')) {
@@ -846,7 +795,6 @@
         } finally {
           userInput.style.height = 'auto';
           sendButton.classList.remove('loading');
-          removeThinkingIndicator();
           currentAIMessage = null; // 确保在任何情况下都重置
         }
       }
@@ -906,7 +854,6 @@
         } finally {
           userInput.style.height = 'auto';
           sendButton.classList.remove('loading');
-          removeThinkingIndicator();
           currentAIMessage = null; // Ensure reset in all cases
         }
       }
