@@ -17,7 +17,8 @@ body {
 }
 
 #chat-container.sidebar-collapsed {
-    margin-left: 20px;
+    margin-left: 30px;
+    /* Match the visible width */
 }
 
 .message {
@@ -127,8 +128,8 @@ body {
 }
 
 #input-container.sidebar-collapsed {
-    margin-left: 20px;
-    width: calc(100% - 40px);
+    margin-left: 30px;
+    width: calc(100% - 50px);
 }
 
 #user-input {
@@ -310,7 +311,7 @@ body {
 /* 添加媒体查询来处理侧边栏折叠状态 */
 .sidebar-collapsed .avatar-panel {
     /* 当侧边栏折叠时调整左边距 */
-    left: 40px;
+    left: 50px;
 }
 
 .avatar-option {
@@ -348,7 +349,8 @@ body {
 }
 
 .sidebar.collapsed {
-    transform: translateX(-180px);
+    transform: translateX(-170px);
+    /* Show more of the sidebar (30px) */
 }
 
 .sidebar-header {
@@ -363,21 +365,21 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     border: none;
     background: transparent;
     cursor: pointer;
     padding: 0;
-    color: #666;
+    color: #ccc;
     font-family: 'Segoe UI', sans-serif;
-    font-size: 14px;
+    font-size: 16px;
     transition: all 0.2s;
 }
 
 .collapse-button:hover {
-    color: #333;
-    background: rgba(0, 0, 0, 0.05);
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
 }
 
