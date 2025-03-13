@@ -7,6 +7,8 @@ body {
 }
 
 #chat-container {
+    /* 添加相对定位 */
+    position: relative;
     margin-top: 30px;
     height: calc(100vh - 130px);
     overflow-y: auto;
@@ -207,15 +209,24 @@ body {
 
 .avatar-panel {
     display: none;
-    position: fixed;
+    /* 改为绝对定位 */
+    position: absolute;
     bottom: 70px;
-    left: 10px;
+    /* 调整左边距，避免覆盖侧边栏 */
+    left: 220px;
     background: rgba(40, 40, 40, 0.95);
     border: 1px solid #444;
     border-radius: 5px;
     padding: 10px;
     grid-template-columns: repeat(4, 1fr);
     gap: 10px;
+    z-index: 1000;
+}
+
+/* 添加媒体查询来处理侧边栏折叠状态 */
+.sidebar-collapsed .avatar-panel {
+    /* 当侧边栏折叠时调整左边距 */
+    left: 40px;
 }
 
 .avatar-option {
