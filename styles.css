@@ -15,11 +15,14 @@ body {
     overflow-y: auto;
     margin-left: var(--sidebar-width, 200px);
     transition: margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Center chat content */
 }
 
 #chat-container.sidebar-collapsed {
-    margin-left: calc(var(--sidebar-width, 200px) * 0.15);
-    /* Match the visible width */
+    margin-left: var(--sidebar-collapsed-width, 30px);
 }
 
 .message {
@@ -28,7 +31,12 @@ body {
     gap: 10px;
     margin: 15px 0;
     position: relative;
-    /* 移除 padding-bottom，我们将使用 margin 来处理间距 */
+    max-width: 900px;
+    /* Limit maximum width */
+    width: 100%;
+    padding: 0 20px;
+    /* Add padding for smaller screens */
+    box-sizing: border-box;
 }
 
 .message-content-wrapper {
@@ -118,20 +126,19 @@ body {
 /* Input container adjustments */
 #input-container {
     position: fixed;
-    bottom: 10px;
-    left: 10px;
-    right: 10px;
-    width: calc(100% - var(--sidebar-width, 200px) - 20px);
+    bottom: 0;
+    left: 0;
+    right: 0;
     display: flex;
     align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
     margin-left: var(--sidebar-width, 200px);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1000;
+    transition: margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 #input-container.sidebar-collapsed {
-    margin-left: calc(var(--sidebar-width, 200px) * 0.15);
-    width: calc(100% - (var(--sidebar-width, 200px) * 0.15) - 20px);
+    margin-left: var(--sidebar-collapsed-width, 30px);
 }
 
 #user-input {
@@ -310,6 +317,10 @@ body {
     gap: 10px;
     z-index: 1000;
     transition: left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Center relative to input area */
+    max-width: 900px;
+    margin: 0 auto;
+    right: 20px;
 }
 
 /* 添加媒体查询来处理侧边栏折叠状态 */
@@ -656,4 +667,14 @@ code {
     cursor: pointer;
     transition: all 0.2s;
     margin-left: 8px;
+}
+
+/* Input wrapper for centering */
+.input-wrapper {
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
