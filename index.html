@@ -287,9 +287,9 @@
       try {
         await ipcRenderer.invoke('create-session', currentSessionId);
         const sessionItem = createSessionItem(currentSessionId);
-        sessionsList.appendChild(sessionItem);
+        // Insert at the beginning of the list instead of appending
+        sessionsList.insertBefore(sessionItem, sessionsList.firstChild);
         sessionItem.classList.add('active');
-        sessionItem.scrollIntoView({ behavior: 'smooth' });
       } catch (error) {
         console.error('Error creating session:', error);
       }
