@@ -24,6 +24,7 @@ class AIService extends EventEmitter {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKeys[activeModel]}`
                 },
                 body: JSON.stringify({
                     model: config.defaultModel,

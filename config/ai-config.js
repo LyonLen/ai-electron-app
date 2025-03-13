@@ -1,9 +1,9 @@
 const aiModels = {
     openai: {
-        name: 'DeepSeek-R1',
-        apiBase: 'http://125.71.97.27:9000/v1',
-        models: ['DeepSeek-R1-Distill-Qwen-32B'],
-        defaultModel: 'DeepSeek-R1-Distill-Qwen-32B'
+        name: 'QwQ-32B',
+        apiBase: 'http://125.71.97.27:8000/QwQ/v1',
+        models: ['QwQ-32B'],
+        defaultModel: 'QwQ-32B'
     },
     anthropic: {
         name: 'Anthropic Claude',

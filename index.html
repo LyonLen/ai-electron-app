@@ -303,29 +303,17 @@
     // Load all existing sessions
     async function loadExistingSessions() {
       try {
-        const sessionIds = await ipcRenderer.invoke('get-all-sessions');
+        let sessionIds = await ipcRenderer.invoke('get-all-sessions');
         if (!Array.isArray(sessionIds)) {
           console.error('Invalid sessions data:', sessionIds);
           return;
         }
 
-        // Get all sessions with their lastEditTime
-        const sessionsWithTime = await Promise.all(sessionIds.map(async sessionId => {
-          const data = await ipcRenderer.invoke('get-session-data', sessionId);
-          return {
-            id: sessionId,
-            lastEditTime: data.lastEditTime || 0
-          };
-        }));
-
         // Clear existing sessions
         sessionsList.innerHTML = '';
 
-        // Sort sessions by date (newest first)
-        sessionsWithTime.sort((a, b) => b.lastEditTime - a.lastEditTime);
-
-        for (const oneSessionWithItem of sessionsWithTime) {
-          const sessionItem = createSessionItem(oneSessionWithItem.id);
+        for (const id of sessionIds) {
+          const sessionItem = createSessionItem(id);
           sessionsList.appendChild(sessionItem);
         }
 
@@ -348,7 +336,7 @@
         }
       } catch (error) {
         console.error('Error loading sessions:', error);
-        await createNewSession();
+        throw alert('Error loading sessions.\nError: ' + error.message + "\n" + error.stack);
       }
     }
 
@@ -359,20 +347,6 @@
 
     // Add to your script section
     let currentAIMessage = null;
-
-    // Listen for streaming updates
-    ipcRenderer.on('ai-stream', async (event, content) => {
-      console.log('Received stream content:', content);
-      if (!currentAIMessage || !currentAIMessage.isConnected) {
-        console.log('Creating new AI message container');
-        currentAIMessage = await addMessage('', false, false);
-      }
-      const contentDiv = currentAIMessage.querySelector('.message-content');
-      if (contentDiv) {
-        contentDiv.textContent += content;
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-      }
-    });
 
     // 保留这个最终版本的 handleMessage
     async function handleMessage() {
