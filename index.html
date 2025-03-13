@@ -346,14 +346,23 @@
           return;
         }
 
+        // Get all sessions with their lastEditTime
+        const sessionsWithTime = await Promise.all(sessionIds.map(async sessionId => {
+          const data = await ipcRenderer.invoke('get-session-data', sessionId);
+          return {
+            id: sessionId,
+            lastEditTime: data.lastEditTime || 0
+          };
+        }));
+
         // Clear existing sessions
         sessionsList.innerHTML = '';
 
         // Sort sessions by date (newest first)
-        sessionIds.sort((a, b) => parseInt(b) - parseInt(a));
+        sessionsWithTime.sort((a, b) => b.lastEditTime - a.lastEditTime);
 
-        for (const sessionId of sessionIds) {
-          const sessionItem = createSessionItem(sessionId);
+        for (const oneSessionWithItem of sessionsWithTime) {
+          const sessionItem = createSessionItem(oneSessionWithItem.id);
           sessionsList.appendChild(sessionItem);
         }
 

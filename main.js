@@ -126,6 +126,17 @@ ipcMain.handle('create-session', async (event, sessionId) => {
     return sessionId;
 });
 
+ipcMain.handle('get-session-data', async (event, sessionId) => {
+    try {
+        const filePath = path.join(sessionsPath, `${sessionId}.json`);
+        const data = await fs.readFile(filePath, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.error('Error reading session data:', error);
+        return { messages: [], lastEditTime: 0 };
+    }
+});
+
 ipcMain.handle('get-session-messages', async (event, sessionId) => {
     const messages = sessions.get(sessionId) || [];
     return messages;
