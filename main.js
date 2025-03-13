@@ -27,7 +27,8 @@ async function loadSessions() {
             if (file.endsWith('.json')) {
                 const sessionId = file.replace('.json', '');
                 const data = await fs.readFile(path.join(sessionsPath, file), 'utf8');
-                sessions.set(sessionId, JSON.parse(data));
+                const sessionData = JSON.parse(data);
+                sessions.set(sessionId, sessionData.messages || []);
             }
         }
     } catch (error) {
@@ -38,8 +39,12 @@ async function loadSessions() {
 // Save session to disk
 async function saveSession(sessionId, messages) {
     try {
+        const sessionData = {
+            messages: messages,
+            lastEditTime: Date.now()
+        };
         const filePath = path.join(sessionsPath, `${sessionId}.json`);
-        await fs.writeFile(filePath, JSON.stringify(messages), 'utf8');
+        await fs.writeFile(filePath, JSON.stringify(sessionData), 'utf8');
     } catch (error) {
         console.error('Error saving session:', error);
     }
