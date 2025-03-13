@@ -371,23 +371,7 @@
           userInput.value = '';
           console.log('User message added to chat');
 
-          // 如果是前3次对话，使用用户消息更新标题
-          if (messageCounter <= 0) {
-            const title = message.length > 20 ? message.substring(0, 20) + '...' : message;
-            await ipcRenderer.invoke('update-session-title', {
-              sessionId: currentSessionId,
-              title: title
-            });
-
-            // 更新UI中的标题
-            const sessionItem = document.querySelector(`.session-item[sessionId="${currentSessionId}"]`);
-            if (sessionItem) {
-              const titleSpan = sessionItem.querySelector('.session-title');
-              if (titleSpan) {
-                titleSpan.textContent = title;
-              }
-            }
-          } else if (messageCounter > 0 && messageCounter <= 6) {
+          if (messageCounter == 1 || messageCounter % 10 == 0) {
             // 调用AI接口，获取AI标题
             const aiTitle = await ipcRenderer.invoke('get-ai-title', currentSessionId);
             if (aiTitle) {

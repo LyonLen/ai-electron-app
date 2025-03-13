@@ -15,7 +15,8 @@ class AIService extends EventEmitter {
 
         context = context.slice(-6);
         let conversationsStr = context.map(msg => msg.role + ": " + msg.message).join('\n\n');
-
+        
+        const nowTime = new Date();
         const messages = [
             {
                 role: 'system', content: `<conversation>${conversationsStr}</conversation>\n\n
@@ -40,6 +41,7 @@ Summary the conversation, simply response.` }
             const text = response.statusText;
             throw new Error(`API request failed with status ${response.status} ${text}`);
         }
+        console.log('cost time: ', new Date() - nowTime);
 
         const json = await response.json();
         console.log('test  ', json.choices[0]?.message?.content || '');
