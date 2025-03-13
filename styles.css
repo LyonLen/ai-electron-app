@@ -341,11 +341,34 @@ body {
     top: 30px;
     bottom: 0;
     width: 200px;
+    min-width: 180px;
+    /* Minimum width */
+    max-width: 400px;
+    /* Maximum width */
     background: rgba(35, 35, 35, 0.95);
     border-right: 1px solid #444;
     transition: transform 0.3s ease;
     display: flex;
     flex-direction: column;
+    resize: horizontal;
+    overflow-x: hidden !important;
+    /* Hide horizontal scrollbar */
+}
+
+/* Add resize handle styles */
+.sidebar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -2px;
+    width: 4px;
+    height: 100%;
+    cursor: col-resize;
+    background: transparent;
+}
+
+.sidebar:hover::after {
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .sidebar.collapsed {

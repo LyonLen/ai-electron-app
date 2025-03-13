@@ -540,7 +540,6 @@
 
         // Create header
         const thinkingHeader = document.createElement('div');
-        thinkingHeader.className = 'thinking-header';
         thinkingHeader.innerHTML = `
       <span class="thinking-toggle">▼</span>
       <span class="thinking-title">Thinking Process</span>
@@ -607,9 +606,9 @@
     function escapeHtml(unsafe) {
       return unsafe
         .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
+        .replace(/</ / g, "&lt;")
         .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
+        .replace(/"/ / g, "&quot;")
         .replace(/'/g, "&#039;");
     }
 
@@ -650,6 +649,42 @@
         }, 2000);
       });
     }
+
+    // Add this after your other const declarations
+    document.addEventListener('DOMContentLoaded', () => {
+      const sidebar = document.querySelector('.sidebar');
+      const chatContainer = document.getElementById('chat-container');
+      const inputContainer = document.getElementById('input-container');
+      let isResizing = false;
+      let lastDownX = 0;
+
+      sidebar.addEventListener('mousedown', (e) => {
+        // Only trigger on right edge
+        if (e.offsetX > sidebar.offsetWidth - 8) {
+          isResizing = true;
+          lastDownX = e.clientX;
+        }
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+
+        e.preventDefault();
+        const width = e.clientX;
+
+        // Apply constraints
+        if (width >= 180 && width <= 400) {
+          sidebar.style.width = width + 'px';
+          chatContainer.style.marginLeft = width + 'px';
+          inputContainer.style.marginLeft = width + 'px';
+          inputContainer.style.width = `calc(100% - ${width + 20}px)`;
+        }
+      });
+
+      document.addEventListener('mouseup', () => {
+        isResizing = false;
+      });
+    });
 
   </script>
 </body>
