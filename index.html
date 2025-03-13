@@ -686,6 +686,40 @@
       });
     });
 
+    document.addEventListener('DOMContentLoaded', () => {
+      const sidebar = document.querySelector('.sidebar');
+      const root = document.documentElement;
+
+      // Set initial sidebar width
+      root.style.setProperty('--sidebar-width', '200px');
+
+      // Update sidebar width during resize
+      let isResizing = false;
+
+      sidebar.addEventListener('mousedown', (e) => {
+        if (e.offsetX > sidebar.offsetWidth - 8) {
+          isResizing = true;
+        }
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+
+        const width = Math.min(Math.max(180, e.clientX), 400);
+        root.style.setProperty('--sidebar-width', `${width}px`);
+      });
+
+      document.addEventListener('mouseup', () => {
+        isResizing = false;
+      });
+
+      // Update width CSS variable when collapsing/expanding
+      document.querySelector('.collapse-button').addEventListener('click', () => {
+        const currentWidth = sidebar.offsetWidth;
+        root.style.setProperty('--sidebar-width', `${currentWidth}px`);
+      });
+    });
+
   </script>
 </body>
 
