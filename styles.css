@@ -552,6 +552,8 @@ body {
     margin: 4px 0;
     overflow: hidden;
     transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
 }
 
 .thinking-header {
@@ -562,6 +564,7 @@ body {
     user-select: none;
     font-size: smaller;
     font-style: italic;
+    justify-content: space-between;
 }
 
 .thinking-header:hover {
@@ -569,7 +572,7 @@ body {
 }
 
 .thinking-toggle {
-    margin-right: 8px;
+    margin-right: 10px;
     transition: transform 0.3s ease;
     font-size: xx-small;
 }
@@ -577,6 +580,10 @@ body {
 .thinking-title {
     color: #666;
     font-size: 0.9em;
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .thinking-content {

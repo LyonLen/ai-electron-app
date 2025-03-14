@@ -10,29 +10,6 @@
   <script src="assets/js/prism-javascript.min.js"></script>
   <script src="assets/js/prism-python.min.js"></script>
   <script src="assets/js/prism-java.min.js"></script>
-  <style>
-    .thinking-section {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .thinking-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .thinking-title {
-      flex-grow: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .thinking-toggle {
-      margin-right: 10px;
-    }
-  </style>
 </head>
 
 <body>
@@ -124,6 +101,15 @@
       const content = document.createElement('div');
       content.className = 'message-content';
       content.innerHTML = message.message || message;
+
+      const thinkingSection = content.querySelector('.thinking-section');
+      const thinkingHeader = content.querySelector('.thinking-header');
+      if (thinkingSection && thinkingHeader) {
+        console.log('Thinking header found:', thinkingHeader);
+        thinkingHeader.onclick = () => {
+          thinkingSection.classList.toggle('collapsed');
+        };
+      }
 
       // 添加时间显示
       const timeDiv = document.createElement('div');
