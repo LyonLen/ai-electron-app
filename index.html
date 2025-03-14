@@ -10,6 +10,29 @@
   <script src="assets/js/prism-javascript.min.js"></script>
   <script src="assets/js/prism-python.min.js"></script>
   <script src="assets/js/prism-java.min.js"></script>
+  <style>
+    .thinking-section {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .thinking-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .thinking-title {
+      flex-grow: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .thinking-toggle {
+      margin-right: 10px;
+    }
+  </style>
 </head>
 
 <body>
@@ -542,6 +565,7 @@
 
         // Create header
         const thinkingHeader = document.createElement('div');
+        thinkingHeader.className = 'thinking-header';
         thinkingHeader.innerHTML = `
       <span class="thinking-toggle">▼</span>
       <span class="thinking-title">Thinking Process</span>
