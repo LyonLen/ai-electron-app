@@ -69,7 +69,9 @@ Summary the conversation, simply response.` }
                 body: JSON.stringify({
                     model: config.defaultModel,
                     messages,
-                    stream: true
+                    stream: true,
+                    maxTokens: 500,
+                    temperature: 0.7
                 })
             });
 

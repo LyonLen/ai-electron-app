@@ -421,6 +421,7 @@
     let currentAIMessage = null;
 
     let messageCounter = document.querySelectorAll('.message').length;
+    console.log('Initial message count:', messageCounter);
 
     // 保留这个最终版本的 handleMessage
     async function handleMessage() {
@@ -594,13 +595,7 @@
             const formattedContent = regularContent.innerHTML.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
               const language = lang || 'text';
               const trimmedCode = code.trim();
-              return `<div class="code-block">
-            <div class="code-header">
-              <span class="code-lang">${language}</span>
-              <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
-            </div>
-            <pre><code class="language-${language}">${escapeHtml(trimmedCode)}</code></pre>
-          </div>`;
+              return `<div class="code-block"><div class="code-header"><span class="code-lang">${language}</span><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></div><pre><code class="language-${language}">${escapeHtml(trimmedCode)}</code></pre></div>`;
             });
             regularContent.innerHTML = formattedContent;
 
