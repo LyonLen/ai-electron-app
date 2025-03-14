@@ -11,7 +11,6 @@ module.exports = {
     aiModels,
     activeModel: 'openai', // Default model
     apiKeys: {
-        openai: process.env.OPENAI_API_KEY,
-        anthropic: process.env.ANTHROPIC_API_KEY
+        openai: process.env.OPENAI_API_KEY
     }
 };

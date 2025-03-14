@@ -7,12 +7,25 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "set NODE_ENV=development && electron .",
     "dev": "set DEBUG=true && electron .",
-    "prod": "electron ."
+    "prod": "electron .",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "com.lyonmonster.id",
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
   },
   "author": "Lyon Lin",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^35.0.1"
+    "electron": "^35.0.1",
+    "electron-builder": "^25.1.8"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
