@@ -420,9 +420,6 @@
     // Add to your script section
     let currentAIMessage = null;
 
-    let messageCounter = document.querySelectorAll('.message').length;
-    console.log('Initial message count:', messageCounter);
-
     // 保留这个最终版本的 handleMessage
     async function handleMessage() {
       if (userInput.value.trim() && !sendButton.classList.contains('loading')) {
@@ -437,27 +434,21 @@
         disableSessionControls();
 
         try {
-          // 增加消息计数
-          messageCounter++;
-
           // Add user message
           await addMessage(message, true);
           userInput.value = '';
           console.log('User message added to chat');
 
-          if (messageCounter == 1 || messageCounter % 10 == 0) {
-            // 调用AI接口，获取AI标题
-            const aiTitle = await ipcRenderer.invoke('get-ai-title', currentSessionId);
-            if (aiTitle) {
-              await ipcRenderer.invoke('update-session-title', currentSessionId, aiTitle);
-
-              // 更新UI中的标题
-              const sessionItem = document.querySelector(`.session-item[sessionId="${currentSessionId}"]`);
-              if (sessionItem) {
-                const titleSpan = sessionItem.querySelector('.session-title');
-                if (titleSpan) {
-                  titleSpan.textContent = aiTitle;
-                }
+          // 更新UI中的标题
+          const sessionItem = document.querySelector(`.session-item[sessionId="${currentSessionId}"]`);
+          if (sessionItem) {
+            const titleSpan = sessionItem.querySelector('.session-title');
+            if (titleSpan && titleSpan.textContent.startsWith('Chat ')) {
+              // 调用AI接口，获取AI标题
+              const aiTitle = await ipcRenderer.invoke('get-ai-title', currentSessionId);
+              if (aiTitle) {
+                await ipcRenderer.invoke('update-session-title', currentSessionId, aiTitle);
+                titleSpan.textContent = aiTitle;
               }
             }
           }
@@ -471,7 +462,7 @@
 
           // Save complete AI message
           if (currentAIMessage && currentAIMessage.isConnected) {
-            const aiContent = currentAIMessage.querySelector('.message-content').innerHTML;
+            const aiContent = currentAIMessage.querySelector('.message-content')?.querySelector('.regular-tag')?.textContent;
             if (aiContent) {
               await Promise.all([
                 ipcRenderer.invoke('save-message', {

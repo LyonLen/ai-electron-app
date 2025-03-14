@@ -13,14 +13,18 @@ class AIService extends EventEmitter {
         // 把消息传给openai，获取标题
         const config = this.configs[activeModel];
 
-        context = context.slice(-6);
+        context = context.slice(1);
+        context = context.filter(msg => msg.role === 'user');
+        if (context.length < 3) {
+            return `Chat ${new Date(Date.now()).toLocaleTimeString()}`
+        }
         let conversationsStr = context.map(msg => msg.role + ": " + msg.message).join('\n\n');
 
         const nowTime = new Date();
         const messages = [
             {
-                role: 'system', content: `<conversation>${conversationsStr}</conversation>\n\n
-Summary the conversation, simply response.` }
+                role: 'system', content: `<user-inputs>${conversationsStr}</user-inputs>\n\nSummary <user-inputs>, generate title`
+            }
         ];
 
         const response = await fetch(`${config.apiBase}/chat/completions`, {
@@ -52,13 +56,17 @@ Summary the conversation, simply response.` }
     async sendMessage(message, context = []) {
         try {
             const config = this.configs[activeModel];
+            if (context) {
+                context = context.slice(1);
+            }
             const messages = [
+                { role: 'system', content: 'This is Lyon AI Studio, you are a serious AI assitance.' },
                 ...context.map(msg => ({
                     role: msg.isUser ? 'user' : 'assistant',
-                    content: msg.message
-                })),
-                { role: 'user', content: message }
+                    content: msg.message.replace(/<[^>]*>/g, '')
+                }))
             ];
+            console.log('messages: ', messages);
 
             const response = await fetch(`${config.apiBase}/chat/completions`, {
                 method: 'POST',
