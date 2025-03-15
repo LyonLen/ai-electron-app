@@ -12,11 +12,8 @@ class AIService extends EventEmitter {
     async getTitle(context) {
         const config = this.configs[activeModel];
 
-        // 删除第一个系统消息
-        context = context.slice(1);
-
         // 只保留用户消息
-        context = context.filter(msg => msg.role === 'user');
+        context = context.filter(msg => msg.isUser);
 
         // 如果消息长度小于3，则返回默认标题
         if (context.length < 3) {

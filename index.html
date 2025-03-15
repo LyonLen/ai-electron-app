@@ -78,9 +78,6 @@
     const sessionsList = document.getElementById('sessions-list');
     const newSessionBtn = document.getElementById('new-session-button');
 
-    // 添加一个状态变量来跟踪是否在对话中
-    let isInConversation = false;
-
     // 初始化会话
     async function initSession() {
       await ipcRenderer.invoke('create-session', currentSessionId);
@@ -274,7 +271,7 @@
       item.appendChild(deleteBtn);
 
       item.onclick = async () => {
-        if (isInConversation) {
+        if (sendButton.classList.contains('loading')) {
           return; // 如果正在对话中，直接返回
         }
 
@@ -324,7 +321,7 @@
 
     // Replace the existing new session button with this
     document.getElementById('new-session-btn').addEventListener('click', () => {
-      if (!isInConversation) {
+      if (!sendButton.classList.contains('loading')) {
         createNewSession();
       }
     });
@@ -407,79 +404,76 @@
     // Add to your script section
     let currentAIMessage = null;
 
-    // 保留这个最终版本的 handleMessage
+    // 处理用户输入，点击发送按钮或按Enter键时调用
     async function handleMessage() {
-      if (userInput.value.trim() && !sendButton.classList.contains('loading')) {
-        const message = userInput.value.trim();
-        console.log('Sending message:', message);
-        sendButton.classList.add('loading');
-        currentAIMessage = null; // Reset currentAIMessage
+      const message = userInput.value.trim();
 
-        // 设置对话状态为true
-        isInConversation = true;
-        // 禁用新建和切换会话按钮
-        disableSessionControls();
+      // 没有输入问题或AI正在回复, 直接返回
+      if (!message) return;
+      if (sendButton.classList.contains('loading')) return;
+      sendButton.classList.add('loading');
 
-        try {
-          // Add user message
-          await addMessage(message, true);
-          userInput.value = '';
-          console.log('User message added to chat');
+      // 确保只有一个对话
+      currentAIMessage = null;
 
-          // 更新UI中的标题
-          const sessionItem = document.querySelector(`.session-item[sessionId="${currentSessionId}"]`);
-          if (sessionItem) {
-            const titleSpan = sessionItem.querySelector('.session-title');
-            if (titleSpan && titleSpan.textContent.startsWith('Chat ')) {
-              // 调用AI接口，获取AI标题
-              const aiTitle = await ipcRenderer.invoke('get-ai-title', currentSessionId);
-              if (aiTitle) {
-                await ipcRenderer.invoke('update-session-title', currentSessionId, aiTitle);
-                titleSpan.textContent = aiTitle;
-              }
+      // 禁用新建和切换会话按钮
+      disableSessionControls();
+
+      try {
+        // 添加用户消息
+        await addMessage(message, true);
+        userInput.value = '';
+
+        const sessionItem = document.querySelector(`.session-item[sessionId="${currentSessionId}"]`);
+        if (sessionItem) {
+          const titleSpan = sessionItem.querySelector('.session-title');
+          if (titleSpan && titleSpan.textContent.startsWith('Chat ')) {
+            // 调用AI接口，获取AI标题
+            const aiTitle = await ipcRenderer.invoke('get-ai-title', currentSessionId);
+            if (aiTitle) {
+              await ipcRenderer.invoke('update-session-title', currentSessionId, aiTitle);
+              titleSpan.textContent = aiTitle;
             }
           }
-
-          // Get AI response
-          console.log('Requesting AI response...');
-          await ipcRenderer.invoke('send-ai-message', {
-            message,
-            sessionId: currentSessionId
-          });
-
-          // Save complete AI message
-          if (currentAIMessage && currentAIMessage.isConnected) {
-            const aiContent = currentAIMessage.querySelector('.message-content')?.querySelector('.regular-tag')?.textContent;
-            if (aiContent) {
-              await Promise.all([
-                ipcRenderer.invoke('save-message', {
-                  sessionId: currentSessionId,
-                  message: aiContent,
-                  isUser: false
-                })
-              ]);
-
-              // 把当前会话置顶
-              const sessionItem = sessionsList.querySelector('.session-item.active');
-              if (sessionItem) {
-                // https://developer.mozilla.org/zh-CN/docs/Web/API/Node/insertBefore
-                // 如果sessionItem已经在sessionsList中，则将其移动到sessionsList的第一个位置
-                sessionsList.insertBefore(sessionItem, sessionsList.firstChild);
-              }
-            }
-          }
-        } catch (error) {
-          console.error('Error in handleMessage:', error);
-          await addMessage('Sorry, I encountered an error.', false);
-          alert('Error sending message.\nError: ' + error.message + "\n" + error.stack);
-        } finally {
-          // 恢复会话控制
-          isInConversation = false;
-          enableSessionControls();
-          userInput.style.height = 'auto';
-          sendButton.classList.remove('loading');
-          currentAIMessage = null; // Ensure reset in all cases
         }
+
+        // Get AI response
+        console.log('Requesting AI response...');
+        await ipcRenderer.invoke('send-ai-message', {
+          message,
+          sessionId: currentSessionId
+        });
+
+        // Save complete AI message
+        if (currentAIMessage && currentAIMessage.isConnected) {
+          const aiContent = currentAIMessage.querySelector('.message-content')?.querySelector('.regular-tag')?.textContent;
+          if (aiContent) {
+            await Promise.all([
+              ipcRenderer.invoke('save-message', {
+                sessionId: currentSessionId,
+                message: aiContent,
+                isUser: false
+              })
+            ]);
+
+            // 把当前会话置顶
+            const sessionItem = sessionsList.querySelector('.session-item.active');
+            if (sessionItem) {
+              // https://developer.mozilla.org/zh-CN/docs/Web/API/Node/insertBefore
+              // 如果sessionItem已经在sessionsList中，则将其移动到sessionsList的第一个位置
+              sessionsList.insertBefore(sessionItem, sessionsList.firstChild);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error in handleMessage:', error);
+        await addMessage('Sorry, I encountered an error.', false);
+        alert('Error sending message.\nError: ' + error.message + "\n" + error.stack);
+      } finally {
+        enableSessionControls();
+        userInput.style.height = 'auto';
+        sendButton.classList.remove('loading');
+        currentAIMessage = null; // Ensure reset in all cases
       }
     }
 
@@ -506,8 +500,6 @@
           }
         }
 
-        // Reset conversation state
-        isInConversation = false;
         userInput.disabled = false;
         userInput.focus();
 
@@ -517,10 +509,9 @@
       }
     }
 
-    // Replace the existing ai-reason-stream handler
+    // 接收，处理并显示AI推理流数据
     ipcRenderer.on('ai-reason-stream', async (event, renderContent) => {
       if (!currentAIMessage || !currentAIMessage.isConnected) {
-        console.log('Creating new AI message container');
         currentAIMessage = await addMessage('', false, false);
         const contentDiv = currentAIMessage.querySelector('.message-content');
 
@@ -563,28 +554,27 @@
       }
     });
 
-    // Update the ai-stream handler
+    // 接收，处理并显示AI流数据
     ipcRenderer.on('ai-stream', async (event, content) => {
-      if (currentAIMessage) {
-        const regularContent = currentAIMessage.querySelector('.regular-tag');
-        if (regularContent) {
-          regularContent.innerHTML += content;
-          if (regularContent.innerHTML.includes('```')) {
-            const formattedContent = regularContent.innerHTML.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
-              const language = lang || 'text';
-              const trimmedCode = code.trim();
-              return `<div class="code-block"><div class="code-header"><span class="code-lang">${language}</span><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></div><pre><code class="language-${language}">${escapeHtml(trimmedCode)}</code></pre></div>`;
-            });
-            regularContent.innerHTML = formattedContent;
+      if (!currentAIMessage) return;
+      const regularContent = currentAIMessage.querySelector('.regular-tag');
+      if (!regularContent) return;
+      regularContent.innerHTML += content;
+      if (!regularContent.innerHTML.includes('```')) return;
 
-            // Apply syntax highlighting
-            regularContent.querySelectorAll('pre code').forEach((block) => {
-              Prism.highlightElement(block);
-            });
-          }
-          chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-      }
+      // 匹配代码块，并将其格式化为HTML
+      const formattedContent = regularContent.innerHTML.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
+        const language = lang || 'text';
+        const trimmedCode = code.trim();
+        return `<div class="code-block"><div class="code-header"><span class="code-lang">${language}</span><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></div><pre><code class="language-${language}">${escapeHtml(trimmedCode)}</code></pre></div>`;
+      });
+      regularContent.innerHTML = formattedContent;
+
+      // 把代码块高亮显示
+      regularContent.querySelectorAll('pre code').forEach((block) => {
+        Prism.highlightElement(block);
+      });
+      chatContainer.scrollTop = chatContainer.scrollHeight;
     });
 
     // Add helper function for HTML escaping
@@ -620,7 +610,7 @@
       });
     }
 
-    // Add copy function
+    // 添加复制代码块到剪贴板的函数
     function copyToClipboard(button) {
       const codeBlock = button.closest('.code-block');
       const code = codeBlock.querySelector('code').textContent;
