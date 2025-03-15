@@ -17,7 +17,7 @@
     <div class="window-title">Lyon AI Studio</div>
     <div class="window-controls">
       <button class="window-control-button minimize-button" id="min-btn">─</button>
-      <button class="window-control-button maximize-button" id="max-btn">□</button>
+      <button class="window-control-button maximize-button" id="max-btn">☐</button>
       <button class="window-control-button close-button" id="close-btn">✕</button>
     </div>
   </div>
@@ -88,7 +88,7 @@
       messages.forEach(msg => addMessage(msg.message, msg.isUser));
     }
 
-    // Replace the addMessage function with this updated version
+    // 新增会话
     async function addMessage(message, isUser, save = true) {
       const messageDiv = document.createElement('div');
       messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
@@ -105,7 +105,6 @@
       const thinkingSection = content.querySelector('.thinking-section');
       const thinkingHeader = content.querySelector('.thinking-header');
       if (thinkingSection && thinkingHeader) {
-        console.log('Thinking header found:', thinkingHeader);
         thinkingHeader.onclick = () => {
           thinkingSection.classList.toggle('collapsed');
         };
@@ -114,7 +113,6 @@
       // 添加时间显示
       const timeDiv = document.createElement('div');
       timeDiv.className = 'message-time';
-      console.log('Message timestamp:', message.timestamp);
       const now = message.timestamp ? new Date(message.timestamp) : new Date();
       timeDiv.textContent = now.toLocaleString('zh-CN', {
         year: 'numeric',
@@ -166,13 +164,13 @@
       ipcRenderer.send('maximize-window');
       // Update button text based on window state
       ipcRenderer.invoke('is-maximized').then(isMaximized => {
-        maxBtn.textContent = isMaximized ? '❐' : '□';
+        maxBtn.textContent = isMaximized ? '❐' : '☐';
       });
     });
 
     // Add listener for window state changes
     ipcRenderer.on('window-state-change', (event, isMaximized) => {
-      maxBtn.textContent = isMaximized ? '❐' : '□';
+      maxBtn.textContent = isMaximized ? '❐' : '☐';
     });
 
     // Update only the close button event listener
@@ -191,27 +189,16 @@
       }
     });
 
-    // Add console logs to debug titlebar events
-    console.log('Titlebar element:', titlebar); // Check if element is found
-
     titlebar.addEventListener('dblclick', (e) => {
-      console.log('Titlebar double clicked:', {
-        target: e.target,
-        isDirectClick: e.target === titlebar,
-        hasWindowTitle: e.target.classList.contains('window-title')
-      });
-
       // Only trigger if clicking directly on titlebar or window-title
       if (e.target === titlebar || e.target.classList.contains('window-title')) {
-        console.log('Sending toggle-maximize-window event');
         ipcRenderer.send('toggle-maximize-window');
       }
     });
 
     // Add window state change listener to verify IPC communication
     ipcRenderer.on('window-state-change', (event, isMaximized) => {
-      console.log('Window state changed:', isMaximized);
-      maxBtn.textContent = isMaximized ? '❐' : '□';
+      maxBtn.textContent = isMaximized ? '❐' : '☐';
     });
 
     // Adjust chat container height on window resize
