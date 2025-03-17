@@ -10,6 +10,7 @@
   <script src="assets/js/prism-javascript.min.js"></script>
   <script src="assets/js/prism-python.min.js"></script>
   <script src="assets/js/prism-java.min.js"></script>
+  <script src="assets/js/marked.min.js"></script>
 </head>
 
 <body>
@@ -78,14 +79,7 @@
     const sessionsList = document.getElementById('sessions-list');
     const newSessionBtn = document.getElementById('new-session-button');
 
-    // 初始化会话
-    async function initSession() {
-      await ipcRenderer.invoke('create-session', currentSessionId);
-      const messages = await ipcRenderer.invoke('get-session-messages', currentSessionId);
-      messages.forEach(msg => addMessage(msg.message, msg.isUser));
-    }
-
-    // 新增会话
+    // 渲染消息
     async function addMessage(message, isUser, save = true) {
       const messageDiv = document.createElement('div');
       messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
@@ -95,16 +89,55 @@
       avatar.src = isUser ? currentAvatar.src : botAvatar;
       avatar.alt = isUser ? 'User Avatar' : 'Bot Avatar';
 
-      const content = document.createElement('div');
-      content.className = 'message-content';
-      content.innerHTML = message.message || message;
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content';
+      if (typeof message === 'string') {
+        contentDiv.textContent = message;
+      } else {
+        if (message.thinkContent) {
+          // Create thinking section
+          const thinkingSection = document.createElement('div');
+          thinkingSection.className = 'thinking-section';
 
-      const thinkingSection = content.querySelector('.thinking-section');
-      const thinkingHeader = content.querySelector('.thinking-header');
-      if (thinkingSection && thinkingHeader) {
-        thinkingHeader.onclick = () => {
-          thinkingSection.classList.toggle('collapsed');
-        };
+          // Create header
+          const thinkingHeader = document.createElement('div');
+          thinkingHeader.className = 'thinking-header';
+          thinkingHeader.innerHTML = `
+      <span class="thinking-toggle">▼</span>
+      <span class="thinking-title">Thinking Process</span>
+    `;
+          thinkingHeader.onclick = () => {
+            thinkingSection.classList.toggle('collapsed');
+          };
+
+          const thinkingContent = document.createElement('div');
+          thinkingContent.className = 'thinking-content';
+
+          thinkingContent.textContent = message.thinkContent;
+
+          thinkingSection.appendChild(thinkingHeader);
+          thinkingSection.appendChild(thinkingContent);
+          contentDiv.appendChild(thinkingSection);
+        }
+        const regularContent = document.createElement('div');
+        regularContent.className = 'regular-tag';
+        // regularContent.innerHTML = message.message;
+
+        // 匹配代码块，并将其格式化为HTML
+        // const formattedContent = regularContent.innerHTML.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
+        //   const language = lang || 'text';
+        //   const trimmedCode = code.trim();
+        //   return `<div class="code-block"><div class="code-header"><span class="code-lang">${language}</span><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></div><pre><code class="language-${language}">${escapeHtml(trimmedCode)}</code></pre></div>`;
+        // });
+        const html = marked.parse(message.message);
+        regularContent.innerHTML = `<div class="ai-message">${html}</div>`;
+
+        // 把代码块高亮显示
+        regularContent.querySelectorAll('pre code').forEach((block) => {
+          Prism.highlightElement(block);
+        });
+
+        contentDiv.appendChild(regularContent);
       }
 
       // 添加时间显示
@@ -122,7 +155,7 @@
       }).replace(/\//g, '-');
 
       messageDiv.appendChild(avatar);
-      messageDiv.appendChild(content);
+      messageDiv.appendChild(contentDiv);
       messageDiv.appendChild(timeDiv);
       chatContainer.appendChild(messageDiv);
       chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -131,8 +164,7 @@
         await ipcRenderer.invoke('save-message', {
           sessionId: currentSessionId,
           message,
-          isUser,
-          timestamp: now.getTime() // 保存时间戳
+          isUser
         });
       }
       return messageDiv;
@@ -210,7 +242,16 @@
 
     // Avatar panel toggle
     avatarButton.addEventListener('click', () => {
-      avatarPanel.style.display = avatarPanel.style.display === 'grid' ? 'none' : 'grid';
+      const button = document.querySelector('.avatar-button');
+      const panel = document.querySelector('.avatar-panel');
+
+      // 获取按钮位置
+      const rect = button.getBoundingClientRect();
+
+      // 设置面板位置
+      panel.style.display = 'grid';
+      panel.style.top = `${rect.top - panel.offsetHeight - 10}px`;
+      panel.style.left = `${rect.left}px`;
     });
 
     // Avatar selection
@@ -369,7 +410,7 @@
           chatContainer.innerHTML = '';
           if (Array.isArray(messages)) {
             for (const msg of messages) {
-              const messageDiv = await addMessage(msg.message, msg.isUser, false);
+              const messageDiv = await addMessage(msg, msg.isUser, false);
               if (msg.timestamp) {
                 const timeDiv = messageDiv.querySelector('.message-time');
                 if (timeDiv) {
@@ -403,6 +444,7 @@
 
     // Add to your script section
     let currentAIMessage = null;
+    let aiResponse = null;
 
     // 处理用户输入，点击发送按钮或按Enter键时调用
     async function handleMessage() {
@@ -415,6 +457,9 @@
 
       // 确保只有一个对话
       currentAIMessage = null;
+
+      // 清空AI回复
+      aiResponse = '';
 
       // 禁用新建和切换会话按钮
       disableSessionControls();
@@ -445,13 +490,15 @@
 
         // 保存消息
         if (currentAIMessage && currentAIMessage.isConnected) {
-          const aiContent = currentAIMessage.querySelector('.message-content')?.querySelector('.regular-tag')?.textContent;
-          if (aiContent) {
+          if (aiResponse != null) {
+            const aiThinkContent = currentAIMessage.querySelector('.message-content')?.querySelector('.thinking-content')?.textContent;
+            console.log(`aiThinkContent: ${aiThinkContent}`)
             await Promise.all([
               ipcRenderer.invoke('save-message', {
                 sessionId: currentSessionId,
-                message: aiContent,
-                isUser: false
+                message: aiResponse,
+                isUser: false,
+                thinkContent: aiThinkContent
               })
             ]);
 
@@ -473,6 +520,7 @@
         userInput.style.height = 'auto';
         sendButton.classList.remove('loading');
         currentAIMessage = null; // Ensure reset in all cases
+        aiResponse = '';
       }
     }
 
@@ -558,33 +606,17 @@
       if (!currentAIMessage) return;
       const regularContent = currentAIMessage.querySelector('.regular-tag');
       if (!regularContent) return;
-      regularContent.innerHTML += content;
-      if (!regularContent.innerHTML.includes('```')) return;
-
-      // 匹配代码块，并将其格式化为HTML
-      const formattedContent = regularContent.innerHTML.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
-        const language = lang || 'text';
-        const trimmedCode = code.trim();
-        return `<div class="code-block"><div class="code-header"><span class="code-lang">${language}</span><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></div><pre><code class="language-${language}">${escapeHtml(trimmedCode)}</code></pre></div>`;
-      });
-      regularContent.innerHTML = formattedContent;
+      aiResponse += content;
+      const html = marked.parse(aiResponse);
+      regularContent.innerHTML = `<div class="ai-message">${html}</div>`;
 
       // 把代码块高亮显示
       regularContent.querySelectorAll('pre code').forEach((block) => {
         Prism.highlightElement(block);
       });
+
       chatContainer.scrollTop = chatContainer.scrollHeight;
     });
-
-    // Add helper function for HTML escaping
-    function escapeHtml(unsafe) {
-      return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
 
     // 添加禁用/启用会话控制的函数
     function disableSessionControls() {

@@ -154,13 +154,13 @@ ipcMain.handle('get-session-lastedittime', async (event, sessionId) => {
     return sessions.get(sessionId).lastEditTime || 0;
 });
 
-ipcMain.handle('save-message', async (event, { sessionId, message, isUser }) => {
+ipcMain.handle('save-message', async (event, { sessionId, message, isUser, thinkContent }) => {
     if (!sessions.has(sessionId)) {
         sessions.set(sessionId, newSessionData());
     }
     const sessionData = sessions.get(sessionId)
     const messages = sessionData.messages;
-    messages.push({ message, isUser, timestamp: Date.now() });
+    messages.push({ message, isUser, timestamp: Date.now(), thinkContent: thinkContent });
     await saveSession(sessionId, { messages: messages, lastEditTime: Date.now(), title: sessionData.title });
     return messages;
 });

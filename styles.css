@@ -83,20 +83,50 @@ body {
 }
 
 .ai-message {
-    margin-right: 40px;
+    margin: 5px 20px 10px 20px;
 }
 
-.message-content {
-    padding: 8px 16px;
-    border-radius: 5px;
-    max-width: 80%;
-    width: fit-content;
-    word-break: break-word;
-    min-width: 40px;
-    white-space: pre-wrap;
-    margin: 0 5px;
-    overflow: visible;
-    max-width: 85%;
+.ai-message pre {
+    background: #2d2d2d;
+    padding: 12px;
+    border-radius: 6px;
+    overflow-x: auto;
+}
+
+.ai-message code {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.9em;
+    background: #2d2d2d;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.ai-message blockquote {
+    border-left: 4px solid #666;
+    padding-left: 12px;
+    margin: 12px 0;
+    color: #aaa;
+}
+
+.ai-message table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+}
+
+.ai-message th,
+.ai-message td {
+    padding: 8px;
+    border: 1px solid #444;
+}
+
+.ai-message a {
+    color: #58a6ff;
+    text-decoration: none;
+}
+
+.ai-message a:hover {
+    text-decoration: underline;
 }
 
 /* 根据时间戳长度自动调整气泡最小宽度 */
@@ -156,7 +186,6 @@ body {
     max-height: 20px;
     /* 改为auto允许滚动 */
     overflow-y: auto;
-
     /* 滚动条样式 */
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;
@@ -287,6 +316,8 @@ body {
 .avatar-button {
     width: 40px;
     height: 40px;
+    /* 新增相对定位 */
+    position: relative;
     border-radius: 50%;
     margin-right: 8px;
     cursor: pointer;
@@ -305,10 +336,13 @@ body {
 .avatar-panel {
     display: none;
     /* 改为绝对定位 */
-    position: fixed;
-    bottom: 70px;
-    /* 调整左边距，避免覆盖侧边栏 */
-    left: calc(var(--sidebar-width, 200px) + 20px);
+    position: absolute;
+    /* 定位到按钮顶部上方 */
+    bottom: calc(100% + 10px);
+    /* 向右展开 */
+    left: 50%;
+    transform: translateX(-50%);
+    /* 调整样式 */
     background: rgba(40, 40, 40, 0.95);
     border: 1px solid #444;
     border-radius: 5px;
@@ -316,11 +350,12 @@ body {
     grid-template-columns: repeat(4, 1fr);
     gap: 10px;
     z-index: 1000;
-    transition: left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    /* Center relative to input area */
-    max-width: 900px;
-    margin: 0 auto;
-    right: 20px;
+    /* 移除旧的位置计算 */
+    /* 添加最大高度防止溢出 */
+    height: 50px;
+    overflow-y: auto;
+    /* 添加投影 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* 添加媒体查询来处理侧边栏折叠状态 */
@@ -549,7 +584,7 @@ body {
 .thinking-section {
     background: rgba(52, 53, 65, 0.1);
     border-radius: 8px;
-    margin: 4px 0;
+    margin: 20px;
     overflow: hidden;
     transition: all 0.3s ease;
     display: flex;
@@ -607,73 +642,6 @@ body {
     margin-top: 8px;
     margin: 0;
     padding: 0;
-}
-
-.inline-code {
-    background: rgba(52, 53, 65, 0.1);
-    padding: 2px 4px;
-    border-radius: 4px;
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 0.9em;
-}
-
-strong {
-    font-weight: 600;
-}
-
-em {
-    font-style: italic;
-    opacity: 0.85;
-}
-
-.code-block {
-    margin: 4px 0;
-    background: #1e1e1e;
-    overflow: hidden;
-    border-radius: 6px;
-    border: 1px solid #363636;
-    width: max-content;
-    max-width: calc(100% + 2px);
-    font-family: 'Consolas', 'Monaco', monospace;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-}
-
-.code-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 4px 12px;
-    background: #252526;
-    border-bottom: 1px solid #363636;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-pre {
-    margin: 0;
-    padding: 8px 12px;
-    overflow-x: auto;
-    display: flex;
-}
-
-code {
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 13px;
-    line-height: 1.4;
-    white-space: pre;
-}
-
-.copy-btn {
-    padding: 2px 8px;
-    font-size: 12px;
-    color: #cccccc;
-    background: transparent;
-    border: 1px solid #404040;
-    border-radius: 3px;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-left: 8px;
 }
 
 /* Input wrapper for centering */
