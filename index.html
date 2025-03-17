@@ -85,7 +85,7 @@
       messages.forEach(msg => addMessage(msg.message, msg.isUser));
     }
 
-    // 新增会话
+    // 渲染消息
     async function addMessage(message, isUser, save = true) {
       const messageDiv = document.createElement('div');
       messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
@@ -131,8 +131,7 @@
         await ipcRenderer.invoke('save-message', {
           sessionId: currentSessionId,
           message,
-          isUser,
-          timestamp: now.getTime() // 保存时间戳
+          isUser
         });
       }
       return messageDiv;
@@ -447,12 +446,14 @@
         // Save complete AI message
         if (currentAIMessage && currentAIMessage.isConnected) {
           const aiContent = currentAIMessage.querySelector('.message-content')?.querySelector('.regular-tag')?.textContent;
-          if (aiContent) {
+          const aiThinkContent = currentAIMessage.querySelector('.message-content')?.querySelector('.thinking-content')?.textContent;
+          if (aiContent || aiThinkContent) {
             await Promise.all([
               ipcRenderer.invoke('save-message', {
                 sessionId: currentSessionId,
                 message: aiContent,
-                isUser: false
+                isUser: false,
+                thinkingContent: aiThinkContent
               })
             ]);
 

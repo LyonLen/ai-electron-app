@@ -22,7 +22,7 @@ class AIService extends EventEmitter {
         }
 
         // 将用户消息拼接成字符串
-        let userQuestions = context.map(msg => msg.role + ": " + msg.message).join('\n\n');
+        let userQuestions = context.map(msg => msg.message).join('\n\n');
 
         const messages = [
             {
@@ -41,8 +41,8 @@ class AIService extends EventEmitter {
                 model: config.defaultModel,
                 messages,
                 stream: false,
-                maxTokens: 10,
-                temperature: 0.7
+                max_tokens: 500,
+                temperature: 0.6
             })
         });
         if (!response.ok) {
@@ -51,6 +51,7 @@ class AIService extends EventEmitter {
         }
 
         const json = await response.json();
+        console.debug('response:', json.choices[0]?.message);
         return json.choices[0]?.message?.content || '';
     }
 
@@ -79,7 +80,6 @@ class AIService extends EventEmitter {
                 model: config.defaultModel,
                 messages,
                 stream: true,
-                maxTokens: 500,
                 temperature: 0.7
             })
         });
