@@ -287,6 +287,8 @@ body {
 .avatar-button {
     width: 40px;
     height: 40px;
+    /* 新增相对定位 */
+    position: relative;
     border-radius: 50%;
     margin-right: 8px;
     cursor: pointer;
@@ -305,10 +307,13 @@ body {
 .avatar-panel {
     display: none;
     /* 改为绝对定位 */
-    position: fixed;
-    bottom: 70px;
-    /* 调整左边距，避免覆盖侧边栏 */
-    left: calc(var(--sidebar-width, 200px) + 20px);
+    position: absolute;
+    /* 定位到按钮顶部上方 */
+    bottom: calc(100% + 10px);
+    /* 向右展开 */
+    left: 50%;
+    transform: translateX(-50%);
+    /* 调整样式 */
     background: rgba(40, 40, 40, 0.95);
     border: 1px solid #444;
     border-radius: 5px;
@@ -316,11 +321,12 @@ body {
     grid-template-columns: repeat(4, 1fr);
     gap: 10px;
     z-index: 1000;
-    transition: left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    /* Center relative to input area */
-    max-width: 900px;
-    margin: 0 auto;
-    right: 20px;
+    /* 移除旧的位置计算 */
+    /* 添加最大高度防止溢出 */
+    height: 50px;
+    overflow-y: auto;
+    /* 添加投影 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* 添加媒体查询来处理侧边栏折叠状态 */

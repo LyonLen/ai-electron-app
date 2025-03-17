@@ -240,7 +240,16 @@
 
     // Avatar panel toggle
     avatarButton.addEventListener('click', () => {
-      avatarPanel.style.display = avatarPanel.style.display === 'grid' ? 'none' : 'grid';
+      const button = document.querySelector('.avatar-button');
+      const panel = document.querySelector('.avatar-panel');
+
+      // 获取按钮位置
+      const rect = button.getBoundingClientRect();
+
+      // 设置面板位置
+      panel.style.display = 'grid';
+      panel.style.top = `${rect.top - panel.offsetHeight - 10}px`;
+      panel.style.left = `${rect.left}px`;
     });
 
     // Avatar selection
