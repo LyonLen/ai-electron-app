@@ -83,7 +83,7 @@ body {
 }
 
 .ai-message {
-    margin-right: 40px;
+    margin: 5px 20px 10px 20px;
 }
 
 .ai-message pre {
@@ -584,7 +584,7 @@ body {
 .thinking-section {
     background: rgba(52, 53, 65, 0.1);
     border-radius: 8px;
-    margin: 4px 0;
+    margin: 20px;
     overflow: hidden;
     transition: all 0.3s ease;
     display: flex;
