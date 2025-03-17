@@ -86,17 +86,47 @@ body {
     margin-right: 40px;
 }
 
-.message-content {
-    padding: 8px 16px;
-    border-radius: 5px;
-    max-width: 80%;
-    width: fit-content;
-    word-break: break-word;
-    min-width: 40px;
-    white-space: pre-wrap;
-    margin: 0 5px;
-    overflow: visible;
-    max-width: 85%;
+.ai-message pre {
+    background: #2d2d2d;
+    padding: 12px;
+    border-radius: 6px;
+    overflow-x: auto;
+}
+
+.ai-message code {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.9em;
+    background: #2d2d2d;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.ai-message blockquote {
+    border-left: 4px solid #666;
+    padding-left: 12px;
+    margin: 12px 0;
+    color: #aaa;
+}
+
+.ai-message table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+}
+
+.ai-message th,
+.ai-message td {
+    padding: 8px;
+    border: 1px solid #444;
+}
+
+.ai-message a {
+    color: #58a6ff;
+    text-decoration: none;
+}
+
+.ai-message a:hover {
+    text-decoration: underline;
 }
 
 /* 根据时间戳长度自动调整气泡最小宽度 */
@@ -156,7 +186,6 @@ body {
     max-height: 20px;
     /* 改为auto允许滚动 */
     overflow-y: auto;
-
     /* 滚动条样式 */
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;
@@ -613,73 +642,6 @@ body {
     margin-top: 8px;
     margin: 0;
     padding: 0;
-}
-
-.inline-code {
-    background: rgba(52, 53, 65, 0.1);
-    padding: 2px 4px;
-    border-radius: 4px;
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 0.9em;
-}
-
-strong {
-    font-weight: 600;
-}
-
-em {
-    font-style: italic;
-    opacity: 0.85;
-}
-
-.code-block {
-    margin: 4px 0;
-    background: #1e1e1e;
-    overflow: hidden;
-    border-radius: 6px;
-    border: 1px solid #363636;
-    width: max-content;
-    max-width: calc(100% + 2px);
-    font-family: 'Consolas', 'Monaco', monospace;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-}
-
-.code-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 4px 12px;
-    background: #252526;
-    border-bottom: 1px solid #363636;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-pre {
-    margin: 0;
-    padding: 8px 12px;
-    overflow-x: auto;
-    display: flex;
-}
-
-code {
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 13px;
-    line-height: 1.4;
-    white-space: pre;
-}
-
-.copy-btn {
-    padding: 2px 8px;
-    font-size: 12px;
-    color: #cccccc;
-    background: transparent;
-    border: 1px solid #404040;
-    border-radius: 3px;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-left: 8px;
 }
 
 /* Input wrapper for centering */

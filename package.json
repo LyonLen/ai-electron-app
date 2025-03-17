@@ -39,6 +39,8 @@
     "@anthropic-ai/sdk": "^0.39.0",
     "dotenv": "^16.4.7",
     "events": "^3.3.0",
+    "highlight.js": "^11.11.1",
+    "marked": "^15.0.7",
     "node-fetch": "^2.7.0",
     "openai": "^4.87.3"
   }

@@ -10,6 +10,7 @@
   <script src="assets/js/prism-javascript.min.js"></script>
   <script src="assets/js/prism-python.min.js"></script>
   <script src="assets/js/prism-java.min.js"></script>
+  <script src="assets/js/marked.min.js"></script>
 </head>
 
 <body>
@@ -120,15 +121,16 @@
         }
         const regularContent = document.createElement('div');
         regularContent.className = 'regular-tag';
-        regularContent.innerHTML = message.message;
+        // regularContent.innerHTML = message.message;
 
         // 匹配代码块，并将其格式化为HTML
-        const formattedContent = regularContent.innerHTML.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
-          const language = lang || 'text';
-          const trimmedCode = code.trim();
-          return `<div class="code-block"><div class="code-header"><span class="code-lang">${language}</span><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></div><pre><code class="language-${language}">${escapeHtml(trimmedCode)}</code></pre></div>`;
-        });
-        regularContent.innerHTML = formattedContent;
+        // const formattedContent = regularContent.innerHTML.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
+        //   const language = lang || 'text';
+        //   const trimmedCode = code.trim();
+        //   return `<div class="code-block"><div class="code-header"><span class="code-lang">${language}</span><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></div><pre><code class="language-${language}">${escapeHtml(trimmedCode)}</code></pre></div>`;
+        // });
+        const html = marked.parse(message.message);
+        regularContent.innerHTML = `<div class="ai-message">${html}</div>`;
 
         // 把代码块高亮显示
         regularContent.querySelectorAll('pre code').forEach((block) => {
@@ -606,33 +608,16 @@
       const regularContent = currentAIMessage.querySelector('.regular-tag');
       if (!regularContent) return;
       aiResponse += content;
-      regularContent.innerHTML += content;
-      if (!regularContent.innerHTML.includes('```')) return;
-
-      // 匹配代码块，并将其格式化为HTML
-      const formattedContent = regularContent.innerHTML.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
-        const language = lang || 'text';
-        const trimmedCode = code.trim();
-        return `<div class="code-block"><div class="code-header"><span class="code-lang">${language}</span><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></div><pre><code class="language-${language}">${escapeHtml(trimmedCode)}</code></pre></div>`;
-      });
-      regularContent.innerHTML = formattedContent;
+      const html = marked.parse(aiResponse);
+      regularContent.innerHTML = `<div class="ai-message">${html}</div>`;
 
       // 把代码块高亮显示
       regularContent.querySelectorAll('pre code').forEach((block) => {
         Prism.highlightElement(block);
       });
+
       chatContainer.scrollTop = chatContainer.scrollHeight;
     });
-
-    // Add helper function for HTML escaping
-    function escapeHtml(unsafe) {
-      return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
 
     // 添加禁用/启用会话控制的函数
     function disableSessionControls() {
