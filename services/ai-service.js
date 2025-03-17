@@ -27,7 +27,7 @@ class AIService extends EventEmitter {
         const messages = [
             {
                 role: 'system',
-                content: `<user-inputs>${userQuestions}</user-inputs>\n\nSummary <user-inputs>, generate title`
+                content: `用户问题如下：\n\n${userQuestions}\n\n根据问题，生成标题。\n\n不要有任何格式，仅输出标题。\n\n不超过20个字。`
             }
         ];
 
@@ -41,7 +41,7 @@ class AIService extends EventEmitter {
                 model: config.defaultModel,
                 messages,
                 stream: false,
-                max_tokens: 500,
+                max_tokens: 2000,
                 temperature: 0.6
             })
         });
@@ -80,6 +80,7 @@ class AIService extends EventEmitter {
                 model: config.defaultModel,
                 messages,
                 stream: true,
+                max_tokens: 8000,
                 temperature: 0.7
             })
         });
