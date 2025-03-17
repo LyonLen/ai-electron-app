@@ -78,13 +78,6 @@
     const sessionsList = document.getElementById('sessions-list');
     const newSessionBtn = document.getElementById('new-session-button');
 
-    // 初始化会话
-    async function initSession() {
-      await ipcRenderer.invoke('create-session', currentSessionId);
-      const messages = await ipcRenderer.invoke('get-session-messages', currentSessionId);
-      messages.forEach(msg => addMessage(msg.message, msg.isUser));
-    }
-
     // 渲染消息
     async function addMessage(message, isUser, save = true) {
       const messageDiv = document.createElement('div');
@@ -95,16 +88,41 @@
       avatar.src = isUser ? currentAvatar.src : botAvatar;
       avatar.alt = isUser ? 'User Avatar' : 'Bot Avatar';
 
-      const content = document.createElement('div');
-      content.className = 'message-content';
-      content.innerHTML = message.message || message;
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content';
+      if (typeof message === 'string') {
+        contentDiv.textContent = message;
+      } else {
+        if (message.thinkContent) {
+          // Create thinking section
+          const thinkingSection = document.createElement('div');
+          thinkingSection.className = 'thinking-section';
 
-      const thinkingSection = content.querySelector('.thinking-section');
-      const thinkingHeader = content.querySelector('.thinking-header');
-      if (thinkingSection && thinkingHeader) {
-        thinkingHeader.onclick = () => {
-          thinkingSection.classList.toggle('collapsed');
-        };
+          // Create header
+          const thinkingHeader = document.createElement('div');
+          thinkingHeader.className = 'thinking-header';
+          thinkingHeader.innerHTML = `
+      <span class="thinking-toggle">▼</span>
+      <span class="thinking-title">Thinking Process</span>
+    `;
+          thinkingHeader.onclick = () => {
+            thinkingSection.classList.toggle('collapsed');
+          };
+
+          const thinkingContent = document.createElement('div');
+          thinkingContent.className = 'thinking-content';
+
+          thinkingContent.textContent = message.thinkContent;
+
+          thinkingSection.appendChild(thinkingHeader);
+          thinkingSection.appendChild(thinkingContent);
+          contentDiv.appendChild(thinkingSection);
+        }
+        const regularContent = document.createElement('div');
+        regularContent.className = 'regular-tag';
+        regularContent.innerHTML = message.message;
+
+        contentDiv.appendChild(regularContent);
       }
 
       // 添加时间显示
@@ -122,7 +140,7 @@
       }).replace(/\//g, '-');
 
       messageDiv.appendChild(avatar);
-      messageDiv.appendChild(content);
+      messageDiv.appendChild(contentDiv);
       messageDiv.appendChild(timeDiv);
       chatContainer.appendChild(messageDiv);
       chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -368,7 +386,7 @@
           chatContainer.innerHTML = '';
           if (Array.isArray(messages)) {
             for (const msg of messages) {
-              const messageDiv = await addMessage(msg.message, msg.isUser, false);
+              const messageDiv = await addMessage(msg, msg.isUser, false);
               if (msg.timestamp) {
                 const timeDiv = messageDiv.querySelector('.message-time');
                 if (timeDiv) {
@@ -446,14 +464,15 @@
         // Save complete AI message
         if (currentAIMessage && currentAIMessage.isConnected) {
           const aiContent = currentAIMessage.querySelector('.message-content')?.querySelector('.regular-tag')?.textContent;
-          const aiThinkContent = currentAIMessage.querySelector('.message-content')?.querySelector('.thinking-content')?.textContent;
-          if (aiContent || aiThinkContent) {
+          if (aiContent) {
+            const aiThinkContent = currentAIMessage.querySelector('.message-content')?.querySelector('.thinking-content')?.textContent;
+            console.log(`aiThinkContent: ${aiThinkContent}`)
             await Promise.all([
               ipcRenderer.invoke('save-message', {
                 sessionId: currentSessionId,
                 message: aiContent,
                 isUser: false,
-                thinkingContent: aiThinkContent
+                thinkContent: aiThinkContent
               })
             ]);
 
