@@ -79,7 +79,7 @@ body {
 
 .user-message {
     flex-direction: row-reverse;
-    margin-left: 40px;
+    margin: 5px 20px 10px 20px;
 }
 
 .ai-message {
