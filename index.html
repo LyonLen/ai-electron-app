@@ -482,14 +482,13 @@
           }
         }
 
-        // Get AI response
-        console.log('Requesting AI response...');
+        // 发送用户消息到AI
         await ipcRenderer.invoke('send-ai-message', {
           message,
           sessionId: currentSessionId
         });
 
-        // Save complete AI message
+        // 保存消息
         if (currentAIMessage && currentAIMessage.isConnected) {
           if (aiResponse != null) {
             const aiThinkContent = currentAIMessage.querySelector('.message-content')?.querySelector('.thinking-content')?.textContent;
