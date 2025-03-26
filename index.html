@@ -11,8 +11,8 @@
   <script src="assets/js/prism-python.min.js"></script>
   <script src="assets/js/prism-java.min.js"></script>
   <script src="assets/js/marked.min.js"></script>
-  <script src="assets/js/mermaid.min.js"></script>
-  <!-- <script src="https://cdn.jsdelivr.net/npm/mermaid@8.5.0/dist/mermaid.min.js"></script> -->
+  <!-- <script src="assets/js/mermaid.min.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
 </head>
 
 <body>
@@ -56,11 +56,9 @@
 
     // 初始化Mermaid
     mermaid.initialize({
-      startOnLoad: true,
-      theme: 'default',
-      themeVariables: {
-        svgWidth: '100%',  // 宽度自适应
-      }
+      startOnLoad: false,
+      theme: 'dark',
+      securityLevel: 'loose'
     });
 
     // 最小化、最大化、关闭按钮
@@ -135,33 +133,28 @@
         // regularContent.innerHTML = message.message;
 
         // 匹配代码块，并将其格式化为HTML
-        // const formattedContent = regularContent.innerHTML.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
-        //   const language = lang || 'text';
-        //   const trimmedCode = code.trim();
-        //   return `<div class="code-block"><div class="code-header"><span class="code-lang">${language}</span><button class="copy-btn" onclick="copyToClipboard(this)">Copy</button></div><pre><code class="language-${language}">${escapeHtml(trimmedCode)}</code></pre></div>`;
-        // });
         const html = marked.parse(message.message);
+        console.log(html);
+
         regularContent.innerHTML = `<div class="ai-message">${html}</div>`;
 
-        regularContent.querySelectorAll('pre').forEach((pre) => {
-          const block = pre.querySelector('code');
-          let graphDefinition = block.textContent;
-          console.log(graphDefinition);
-          if (!graphDefinition.startsWith("```mermaid\n")) return;
-          graphDefinition = graphDefinition.replace(/^```mermaid\n/, '');
-          try {
-            const mermaidID = 'mermaid-' + Date.now();
-            mermaid.render(mermaidID, graphDefinition, (svgCode) => {
-              pre.innerHTML = `${svgCode}`;
-              pre.querySelectorAll(`#${mermaidID}`).forEach((element) => {
-                element.style.maxWidth = '100%';
-              });
-            });
-          } catch (error) {
-            console.error('Mermaid rendering error:', error);
-            block.innerHTML = `<div style="color: red;">Mermaid图表渲染失败</div>`;
-          }
-        });
+        // regularContent.querySelectorAll('pre code.language-mermaid').forEach((block) => {
+        //   let graphDefinition = block.textContent;
+        //   graphDefinition = graphDefinition.replace(/^```mermaid\n/, '')
+        //   try {
+        //     const mermaidID = 'mermaid-' + Date.now();
+        //     mermaid.render(mermaidID, graphDefinition, (svgCode) => {
+        //       let pre = block.parentNode;
+        //       pre.innerHTML = svgCode;
+        //       pre.querySelectorAll(`#${mermaidID}`).forEach((element) => {
+        //         element.style.maxWidth = '100%';
+        //       });
+        //     });
+        //   } catch (error) {
+        //     console.error('Mermaid rendering error:', error);
+        //     block.innerHTML = `<div style="color: red;">Mermaid图表渲染失败</div>`;
+        //   }
+        // });
 
         // 把代码块高亮显示
         regularContent.querySelectorAll('pre code').forEach((block) => {
