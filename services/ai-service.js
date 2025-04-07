@@ -1,5 +1,6 @@
 const { aiModels, activeModel, apiKeys } = require('../config/ai-config');
 const { EventEmitter } = require('events');
+const { console } = require('inspector');
 const fetch = require('node-fetch');
 
 class AIService extends EventEmitter {
@@ -56,7 +57,8 @@ class AIService extends EventEmitter {
     }
 
     async sendMessage(message, context = []) {
-        const config = this.configs[activeModel];
+        console.log('this.model:', this.model);
+        const config = this.configs[this.model || activeModel];
         if (context) {
             context = context.slice(1);
         }
@@ -74,7 +76,7 @@ class AIService extends EventEmitter {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKeys[activeModel]}`
+                'Authorization': `Bearer ${apiKeys[this.model || activeModel]}`
             },
             body: JSON.stringify({
                 model: config.defaultModel,
@@ -83,6 +85,8 @@ class AIService extends EventEmitter {
                 max_tokens: 8000,
                 temperature: 0.7
             })
+        }).catch(error => {
+            console.log('Error:', error);
         });
         if (!response.ok) {
             throw new Error(`API request failed with status ${response.status}`);

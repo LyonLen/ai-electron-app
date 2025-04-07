@@ -38,6 +38,12 @@
       <button id="avatar-button" class="avatar-button">
         <img src="assets/avatars/avatar-1.png" alt="User Avatar" id="current-avatar">
       </button>
+      <select id="model-selector"
+        style="background-color: #f0f0f0; border: none; padding: 8px 10px; border-radius: 8px; font-size: 14px; color: #333; margin-left: 10px;">
+        <option value="qwq32b">QwQ-32B</option>
+        <option value="deepseek32b">DeepSeek-R1-Distill-Qwen-32B</option>
+        <!-- <option value="deepseekv3250324">DeepSeek-V3-250324</option> -->
+      </select>
       <textarea id="user-input" placeholder="Feel free to ask me anything ..." rows="2"></textarea>
       <button id="send-button" class="send-button">
         <span class="send-icon">➤</span>
@@ -201,11 +207,19 @@
       }
     });
 
+
     // Auto-resize input field
     userInput.addEventListener('input', function () {
       this.style.height = 'auto';
-      const height = Math.min(this.scrollHeight, 150);
-      this.style.height = height + 'px';
+      this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+    });
+
+    const modelSelector = document.getElementById('model-selector');
+
+    modelSelector.addEventListener('change', async (e) => {
+      const model = e.target.value;
+      // 调用AI接口，获取AI标题
+      ipcRenderer.send('model-change', model);
     });
 
     // Window control buttons
@@ -262,7 +276,11 @@
     });
 
     // Add send button click handler
-    sendButton.addEventListener('click', handleMessage);
+    sendButton.addEventListener('click', async () => {
+      const modelSelector = document.getElementById('model-selector');
+      const model = modelSelector.value;
+      handleMessage(model);
+    });
 
     // Avatar panel toggle
     avatarButton.addEventListener('click', () => {

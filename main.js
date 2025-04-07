@@ -241,6 +241,11 @@ ipcMain.handle('send-ai-message', async (event, { message, sessionId }) => {
     }
 });
 
+ipcMain.on('model-change', (event, model) => {
+    aiService.model = model;
+    console.log('Model changed to:', model);
+});
+
 // 添加更新会话标题的处理器
 ipcMain.handle('update-session-title', async (event, sessionId, title) => {
     const sessionData = sessions.get(sessionId);
