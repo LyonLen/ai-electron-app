@@ -60,15 +60,15 @@ body {
 
 /* AI消息的时间戳 */
 .ai-message .message-time {
-    left: 0;
-    margin-left: 38px;
+
+    margin-left: 52px;
     /* avatar宽度(30px) + gap(8px) */
 }
 
 /* 用户消息的时间戳 */
 .user-message .message-time {
     right: 0;
-    margin-right: 38px;
+    margin-right: 52px;
 }
 
 /* 调整消息间距 */

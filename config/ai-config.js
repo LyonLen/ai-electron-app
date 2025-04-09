@@ -7,9 +7,9 @@ const aiModels = {
         apiBase: 'http://125.71.97.27:8000/v1',
         defaultModel: 'DeepSeek-R1-Distill-Qwen-32B'
     },
-    deepseekv3250324: {
+    deepseekr1: {
         apiBase: 'http://10.224.28.80:3000/v1',
-        defaultModel: 'deepseek-v3-250324'
+        defaultModel: 'deepseek-r1-hs'
     }
 };
 
@@ -19,6 +19,6 @@ module.exports = {
     apiKeys: {
         qwq32b: process.env.OPENAI_API_KEY,
         deepseek32b: process.env.OPENAI_API_KEY,
-        deepseekv3250324: process.env.ONEAPI_INNER_KEY
+        deepseekr1: process.env.ONEAPI_INNER_KEY
     }
 };
