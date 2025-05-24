@@ -612,41 +612,80 @@
       }
     }
 
-    // 接收，处理并显示AI推理流数据
-    ipcRenderer.on('ai-reason-stream', async (event, renderContent) => {
+    // 确保AI消息结构的初始化
+    function ensureAIMessageStructure() {
       if (!currentAIMessage || !currentAIMessage.isConnected) {
-        currentAIMessage = await addMessage('', false, false);
-        const contentDiv = currentAIMessage.querySelector('.message-content');
+        currentAIMessage = null; // 重置
+      }
 
-        // Create thinking section
+      if (!currentAIMessage) {
+        // 创建基础消息结构
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message ai-message';
+
+        const avatar = document.createElement('img');
+        avatar.className = 'message-avatar';
+        avatar.src = botAvatar;
+        avatar.alt = 'Bot Avatar';
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+
+        // 创建thinking部分 (优先在上方)
         const thinkingSection = document.createElement('div');
         thinkingSection.className = 'thinking-section';
 
-        // Create header
         const thinkingHeader = document.createElement('div');
         thinkingHeader.className = 'thinking-header';
         thinkingHeader.innerHTML = `
-      <span class="thinking-toggle">▼</span>
-      <span class="thinking-title">Thinking Process</span>
-    `;
+          <span class="thinking-toggle">▼</span>
+          <span class="thinking-title">Thinking Process</span>
+        `;
         thinkingHeader.onclick = () => {
           thinkingSection.classList.toggle('collapsed');
         };
 
-        // Create content
         const thinkingContent = document.createElement('div');
         thinkingContent.className = 'thinking-content';
 
-        // Create regular content
+        thinkingSection.appendChild(thinkingHeader);
+        thinkingSection.appendChild(thinkingContent);
+
+        // 创建正常内容部分
         const regularContent = document.createElement('div');
         regularContent.className = 'regular-tag';
 
-        // Assemble the structure
-        thinkingSection.appendChild(thinkingHeader);
-        thinkingSection.appendChild(thinkingContent);
+        // 按正确顺序添加：thinking在上，regular在下
         contentDiv.appendChild(thinkingSection);
         contentDiv.appendChild(regularContent);
+
+        // 添加时间显示
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'message-time';
+        const now = new Date();
+        timeDiv.textContent = now.toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        }).replace(/\//g, '-');
+
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(contentDiv);
+        messageDiv.appendChild(timeDiv);
+
+        chatContainer.appendChild(messageDiv);
+        currentAIMessage = messageDiv;
+        chatContainer.scrollTop = chatContainer.scrollHeight;
       }
+    }
+
+    // 接收，处理并显示AI推理流数据
+    ipcRenderer.on('ai-reason-stream', async (event, renderContent) => {
+      ensureAIMessageStructure();
 
       if (currentAIMessage) {
         const thinkingContent = currentAIMessage.querySelector('.thinking-content');
@@ -659,9 +698,12 @@
 
     // 接收，处理并显示AI流数据
     ipcRenderer.on('ai-stream', async (event, content) => {
+      ensureAIMessageStructure();
+
       if (!currentAIMessage) return;
       const regularContent = currentAIMessage.querySelector('.regular-tag');
       if (!regularContent) return;
+
       aiResponse += content;
       const html = marked.parse(aiResponse);
       regularContent.innerHTML = `<div class="ai-message">${html}</div>`;
